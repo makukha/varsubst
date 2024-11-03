@@ -1,0 +1,13 @@
+services:
+
+  builder:
+    build: .
+    hostname: builder
+    stdin_open: true
+    tty: true
+    volumes:
+      - ccache_data:/root/.ccache
+      - ../:/build
+
+volumes:
+  ccache_data:

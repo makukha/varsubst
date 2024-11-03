@@ -1,0 +1,61 @@
+version: '3'
+
+env:
+  COMPOSE_FILE: .dev/compose.yaml
+
+tasks:
+
+  # run
+
+  run:
+    desc: Run "vsub" binary in container; $ task run -- --help
+    cmds:
+      - docker compose run --rm builder build-release/vsub {{.CLI_ARGS}}
+
+  # build, clean
+
+  build:
+    desc: Build project.
+    cmds:
+      - task: build:builder
+      - docker compose run --rm builder task inbuilder:build
+
+  clean:
+    desc: Clean all builder artefacts.
+    cmds:
+      - rm -rf build-*
+      - docker compose down --rmi local --volumes
+
+  # builder
+
+  build:builder:
+    internal: true
+    sources: [.dev/Dockerfile]
+    cmds:
+      - docker compose build
+
+  builder:shell:
+    desc: Shell to docker builder.
+    cmds:
+      - docker compose run --rm builder /bin/bash -i
+
+  inbuilder:build:  # runs in docker container
+    cmds:
+      - task: inbuilder:setup
+      - task: inbuilder:parsers
+      - meson compile -C build-release
+      - meson install -C build-release
+
+  inbuilder:setup:  # runs in docker container
+    internal: true
+    sources: [meson.build]
+    generates: [build-release/**/*]
+    cmds:
+      - meson setup build-release --buildtype=release
+
+  inbuilder:parsers:  # runs in docker container
+    internal: true
+    sources: [src/syntax/*/parser.peg]
+    cmds:
+      - cmd: packcc {{.ITEM}}
+        for: sources
