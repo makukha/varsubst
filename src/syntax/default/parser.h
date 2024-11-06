@@ -13,7 +13,7 @@ extern "C" {
 typedef struct vsub_sx_default_context_tag vsub_sx_default_context_t;
 
 vsub_sx_default_context_t *vsub_sx_default_create(Auxil *auxil);
-int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, char **ret);
+int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret);
 void vsub_sx_default_destroy(vsub_sx_default_context_t *ctx);
 
 #ifdef __cplusplus

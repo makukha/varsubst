@@ -20,7 +20,7 @@
 
 // rules
 
-#define __get_Value char *__val = auxil->getvalue(auxil, var)
+#define __get_Value const char *__val = auxil->getvalue(auxil, var)
 #define __is_Set (__val != NULL)
 #define __is_Empty (__val != NULL && strlen(__val) == 0)
 #define __is_Filled (__val != NULL && strlen(__val) >= 1)

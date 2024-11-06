@@ -1,6 +1,6 @@
 %prefix "vsub_sx_default"
 %auxil "Auxil *"
-%value "char *"
+%value "const char *"
 %common {
 #include "../../syntax.h"
 #define aux auxil

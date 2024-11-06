@@ -29,6 +29,6 @@ bool vsub_use_text_from_str(Vsub *sub, const char *s) {
     src->str = s;
     src->len = strlen(s);
     src->i = 0;
-    aux_set_tsrc(&(sub->aux), src);
+    aux_set_tsrc(&(sub->aux), (VsubTextSrc *)src);
     return true;
 }

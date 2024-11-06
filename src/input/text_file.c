@@ -23,6 +23,6 @@ bool vsub_use_text_from_file(Vsub *sub, FILE *fp) {
     ((VsubTextSrc *)src)->name = NAME;
     ((VsubTextSrc *)src)->getchar = (char (*)(void *))_getchar;
     src->fp = fp;
-    aux_set_tsrc(&(sub->aux), src);
+    aux_set_tsrc(&(sub->aux), (VsubTextSrc *)src);
     return true;
 }

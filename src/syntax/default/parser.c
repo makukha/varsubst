@@ -76,7 +76,7 @@ typedef struct pcc_range_tag {
     size_t end;
 } pcc_range_t;
 
-typedef char *pcc_value_t;
+typedef const char *pcc_value_t;
 
 typedef Auxil *pcc_auxil_t;
 
@@ -1430,7 +1430,7 @@ vsub_sx_default_context_t *vsub_sx_default_create(Auxil *auxil) {
     return pcc_context__create(auxil);
 }
 
-int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, char **ret) {
+int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret) {
     if (pcc_refill_buffer(ctx, 1) < 1) return 0;
     if (pcc_apply_rule(ctx, pcc_evaluate_rule_input, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);

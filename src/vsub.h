@@ -39,10 +39,8 @@ typedef struct Auxil {
     // data
     VsubTextSrc *tsrc;
     VsubVarsSrc *vsrc;
-    char *bres;    // internally allocated result buffer, if needed
-    size_t bresz;  // result buffer size
-    char *berr;    // buffer for errvar & errmsg
-    size_t berrz;  // error buffer size
+    size_t resz;  // result buffer size
+    size_t errz;  // error buffer size
 } Auxil;
 
 // input helpers
@@ -63,8 +61,8 @@ typedef struct VsubSyntax {
     const char *name;
     const char *title;
 } VsubSyntax;
-VSUB_EXPORT VsubSyntax *vsub_find_syntax(char *name);  // find by name
-extern const VsubSyntax VSUB_SYNTAX[];                 // uses VSUB_SX_* as indexes
+VSUB_EXPORT const VsubSyntax *vsub_find_syntax(const char *name);  // find by name
+extern const VsubSyntax VSUB_SYNTAX[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAX_COUNT;
 #define VSUB_SX_DEFAULT 0
 #define VSUB_SX_DC243 1
@@ -73,10 +71,10 @@ extern const size_t VSUB_SYNTAX_COUNT;
 // results and params
 typedef struct Vsub {
     // params
-    VsubSyntax *syntax;  // syntax dialect, one of VSUB_SX_*; 0 by default
+    const VsubSyntax *syntax;  // syntax dialect, one of VSUB_SX_*; 0 by default
     char depth;     // max subst iter count; default: 1
     size_t maxinp;  // max length of input string; unlim if set to 0
-    size_t maxres;  // max length of result string, incl. term. zero; unlim if set to 0
+    size_t maxres;  // max length of result string; unlim if set to 0
     // result
     char *res;      // result string; points to input if plain=1 and copyplain=0
     char err;       // see error/success flags
