@@ -16,10 +16,18 @@
 
 // --- Internals ---
 
+// parsers
+typedef struct VsubParser {
+    void *(*create)(void *aux);
+    int (*parse)(void *ctx, void *ret);
+    void (*destroy)(void *ctx);
+} VsubParser;
+extern const VsubParser VSUB_PARSER[];  // using VSUB_SX_* as indexes
+
 // input base
 typedef struct VsubTextSrc {
     const char *name;
-    char (*getchar)(void *src);
+    int (*getchar)(void *src);
 } VsubTextSrc;
 typedef struct VsubVarsSrc {
     const char *name;
@@ -31,16 +39,19 @@ typedef struct VsubVarsSrc {
 typedef struct Auxil {
     void *sub;
     // syntax methods
-    char (*getchar)(void *aux);
+    int (*getchar)(void *aux);
     const char *(*getvalue)(void *aux, const char *var);
-    bool (*append_orig)(void *aux, const char *str);
-    bool (*append_subst)(void *aux, const char *str);
-    bool (*append_error)(void *aux, const char *errvar, const char* errmsg);
+    bool (*append_orig)(void *aux, int epos, const char *str);
+    bool (*append_subst)(void *aux, int epos, const char *str);
+    bool (*append_error)(void *aux, int epos, const char *errvar, const char* errmsg);
     // data
     VsubTextSrc *tsrc;
     VsubVarsSrc *vsrc;
     size_t resz;  // result buffer size
     size_t errz;  // error buffer size
+    // parser
+    const VsubParser *parser;
+    void *pctx;
 } Auxil;
 
 // input helpers
@@ -81,7 +92,8 @@ typedef struct Vsub {
     char *errvar;   // first variable name with error; NULL by default
     char *errmsg;   // variable error message; NULL by default
     bool trunc;     // whether result string was truncated because of maxinp or maxres
-    size_t inpc;    // consumed length of input str
+    size_t getc;    // input character read attempts
+    size_t inpc;    // parsed input length
     size_t resc;    // actual length of result str
     size_t substc;  // count of total substitutions made
     char depthc;    // count of subst iterations actually performed
@@ -90,6 +102,7 @@ typedef struct Vsub {
 } Vsub;
 
 VSUB_EXPORT void vsub_init(Vsub *sub);
+VSUB_EXPORT bool vsub_alloc(Vsub *sub);
 VSUB_EXPORT bool vsub_run(Vsub *sub);
 VSUB_EXPORT void vsub_free(Vsub *sub);
 // input text

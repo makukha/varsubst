@@ -8,11 +8,19 @@ static const char *NAME = "file";
 typedef struct VsubTextFile {
     struct VsubTextSrc super;
     FILE *fp;
+    bool eof;
 } VsubTextFile;
 
-static char _getchar(VsubTextFile *src) {
+static int _getchar(VsubTextFile *src) {
+    if (src->eof) {  // after EOF reached
+        return -1;
+    }
     char c = fgetc(src->fp);
-    return (c == EOF) ? '\0' : c;
+    if (c < 0) {  // EOF reached
+        src->eof = true;
+        return -1;
+    }
+    return (int)c;
 }
 
 bool vsub_use_text_from_file(Vsub *sub, FILE *fp) {
@@ -21,8 +29,9 @@ bool vsub_use_text_from_file(Vsub *sub, FILE *fp) {
         return false;
     }
     ((VsubTextSrc *)src)->name = NAME;
-    ((VsubTextSrc *)src)->getchar = (char (*)(void *))_getchar;
+    ((VsubTextSrc *)src)->getchar = (int (*)(void *))_getchar;
     src->fp = fp;
+    src->eof = false;
     aux_set_tsrc(&(sub->aux), (VsubTextSrc *)src);
     return true;
 }

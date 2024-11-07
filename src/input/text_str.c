@@ -12,11 +12,11 @@ typedef struct VsubTextStr {
     size_t i;
 } VsubTextStr;
 
-static char _getchar(VsubTextStr *src) {
+static int _getchar(VsubTextStr *src) {
     if (src->i >= src->len - 1) {
-        return '\0';
+        return -1;
     }
-    return src->str[src->i++];
+    return (int)src->str[src->i++];
 }
 
 bool vsub_use_text_from_str(Vsub *sub, const char *s) {
@@ -25,7 +25,7 @@ bool vsub_use_text_from_str(Vsub *sub, const char *s) {
         return false;
     }
     ((VsubTextSrc *)src)->name = NAME;
-    ((VsubTextSrc *)src)->getchar = (char (*)(void *))_getchar;
+    ((VsubTextSrc *)src)->getchar = (int (*)(void *))_getchar;
     src->str = s;
     src->len = strlen(s);
     src->i = 0;

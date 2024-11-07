@@ -3,17 +3,11 @@
 %value "const char *"
 %common {
 #include "../../syntax.h"
-#define aux auxil
 }
 
-input <- atom* EOS
-atom  <- braced
-       / simple
-       / !EOS .                   { USE(Input) }
-
-braced <- '${' var:var '}'        { IF(Set) THEN(Value) ELSE(Input) }
-simple <- '$' var:var             { IF(Set) THEN(Value) ELSE(Input) }
+input <- atom* !.
+atom  <- '${' var:var '}'         { IF(Set) THEN(Value) ELSE(Input) }
+       / '$' var:var              { IF(Set) THEN(Value) ELSE(Input) }
+       / .                        { USE(Input) }
 
 var <- <[_a-zA-Z] [_a-zA-Z0-9]*>  { $$ = $1; }
-
-EOS  <- '\0'

@@ -4,7 +4,6 @@
 #define PCC_INCLUDED_PARSER_H
 
 #include "../../syntax.h"
-#define aux auxil
 
 #ifdef __cplusplus
 extern "C" {

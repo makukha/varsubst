@@ -11,10 +11,10 @@
 
 // actions
 
-#define use_Input auxil->append_orig(auxil, _0)
-#define use_Value auxil->append_subst(auxil, __val)
-#define use_Other auxil->append_subst(auxil, other)
-#define use_Error { auxil->append_error(auxil, var, errmsg); return 0; }
+#define use_Input auxil->append_orig(auxil, _0e, _0)
+#define use_Value auxil->append_subst(auxil, _0e, __val)
+#define use_Other auxil->append_subst(auxil, _0e, other)
+#define use_Error { auxil->append_error(auxil, _0e, var, errmsg); return 0; }
 
 #define USE(a) use_ ## a;
 

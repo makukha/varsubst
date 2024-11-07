@@ -44,7 +44,6 @@ tasks:
       - task: inbuilder:setup
       - task: inbuilder:parsers
       - meson compile -C build-release
-      - meson install -C build-release
 
   inbuilder:setup:  # runs in docker container
     internal: true
