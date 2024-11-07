@@ -113,6 +113,9 @@ VSUB_EXPORT bool vsub_use_text_from_str(Vsub *sub, const char *s);
 VSUB_EXPORT bool vsub_add_vars_from_arglist(Vsub *sub, int c, const char *kv[]);
 VSUB_EXPORT bool vsub_add_vars_from_arrays(Vsub *sub, int c, const char *k[], const char *v[]);
 VSUB_EXPORT bool vsub_add_vars_from_env(Vsub *sub);
+// output formats
+VSUB_EXPORT int vsub_fputs_plain(Vsub *sub, FILE *fp, bool detail);
+VSUB_EXPORT int vsub_fputs_json(Vsub *sub, FILE *fp, bool detail);
 
 // errors
 #define VSUB_SUCCESS 0
@@ -129,10 +132,10 @@ extern const VsubError VSUB_ERRORS[];  // using VSUB_* above as indexes
 #define VSUB_COLOR_ERROR "\033[31;1m"
 VSUB_EXPORT void vsub_print_error_str(const char *str, bool use_color);
 VSUB_EXPORT void vsub_print_error_sub(const Vsub *sub, bool use_color);
-// debugging
-VSUB_EXPORT void vsub_print_debug_metrics(const Vsub *sub, bool before, bool use_color);
-VSUB_EXPORT void vsub_print_debug_title(bool use_color);
-VSUB_EXPORT void vsub_print_debug_result_status(bool result, bool use_color);
+// detailed output
+VSUB_EXPORT void vsub_print_detail_metrics(const Vsub *sub, bool before, bool use_color);
+VSUB_EXPORT void vsub_print_detail_title(bool use_color);
+VSUB_EXPORT void vsub_print_detail_result_status(bool result, bool use_color);
 
 
 #endif  // VSUB_H

@@ -46,7 +46,7 @@ static void pv_errmsg(const Vsub *sub)  { PRINT("%s", sub->errmsg); }
 
 static const Metric METRICS[] = {
     // before run
-    {"syntax", true,  pv_syntax, pn_syntax, "syntax"},
+    {"syntax", true,  pv_syntax, pn_syntax, "substitution syntax"},
     {"tsrc",   true,  pv_tsrc,   NULL,      "input text source"},
     {"vsrc",   true,  pv_vsrc,   NULL,      "input vars sources"},
     {"maxinp", true,  pv_maxinp, pn_maxinp, "max input length"},
@@ -82,9 +82,9 @@ static const size_t METRICS_COUNT = sizeof(METRICS) / sizeof(METRICS[0]);
 #define C(s) use_color ? s : ""
 
 
-// debug output
+// detail output
 
-void vsub_print_debug_metrics(const Vsub *sub, bool before, bool use_color) {
+void vsub_print_detail_metrics(const Vsub *sub, bool before, bool use_color) {
     // determine col widths
     int namew = 0, descw = 0;
     for (int w, i = 0; i < METRICS_COUNT; i++) {
@@ -116,12 +116,12 @@ void vsub_print_debug_metrics(const Vsub *sub, bool before, bool use_color) {
     }
 }
 
-void vsub_print_debug_title(bool use_color) {
+void vsub_print_detail_title(bool use_color) {
     char *fmt = use_color ? "%s vsub " VSUB_VERSION " %s\n" : "%svsub " VSUB_VERSION "%s\n";
     fprintf(stderr, fmt, C(ST_TITLE), C(R));
 }
 
-void vsub_print_debug_result_status(bool result, bool use_color) {
+void vsub_print_detail_result_status(bool result, bool use_color) {
     if (result) {
         fprintf(stderr, "%sSucceeded!%s\n", C(ST_SUCCESS), C(R));
     }

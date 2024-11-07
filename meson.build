@@ -5,9 +5,10 @@ project(
     license_files: ['LICENSE'],
 )
 src = files(
-    'src/debug.c',
+    'src/detail.c',
     'src/error.c',
     'src/main.c',
+    'src/output.c',
     'src/vsub.c',
     'src/input/text_file.c',
     'src/input/text_str.c',

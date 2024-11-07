@@ -10,6 +10,10 @@ static void print_version() {
     puts("vsub " VSUB_VERSION);
 }
 
+static void print_formats() {
+    puts("json\nplain");
+}
+
 static void print_syntaxes() {
     // measure name column width
     int shortlen = 0;
@@ -28,26 +32,31 @@ static void print_syntaxes() {
 static void print_usage() {
     puts("usage: vsub [options] [- | path]");
     puts("  options:");
-    puts("    -s, --syntax=name  syntax to use; default: 'default'");
-    puts("    -e, --env          use environment variables");
-    puts("        --envsubst     use environment variables and 'ggenv' syntax");
-    puts("        --syntaxes     print list of supported syntaxes");
-    puts("    -n, --no-color     turn off color in debug mode");
-    puts("        --debug        print verbose log to stderr");
-    puts("        --version      show tool name, version, and libvsub version");
-    puts("    -h, --help         show this help and exit");
+    puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
+    puts("    -e, --env         use environment variables");
+    puts("    -E, --envsubst    same as '--env --syntax=ggenv'");
+    puts("    -f, --format=STR  set output format; default: 'plain'");
+    puts("    -d, --detail      add extended details");
+    puts("    -b, --no-color    turn off color in --detail mode");
+    puts("    -F, --formats     list supported output formats");
+    puts("    -S, --syntaxes    list supported syntaxes");
+    puts("    -V, --version     show tool name, version, and libvsub version");
+    puts("    -h, --help        show this help and exit");
 }
 
-static const char *shortopts = "-hVdneEs:S";
+static const char *shortopts = "-hVbdeEf:Fs:S";
 static struct option longopts[] = {
-    {"help", no_argument, 0, 'h'},
-    {"version", no_argument, 0, 'V'},
-    {"debug", no_argument, 0, 'D'},
-    {"no-color", no_argument, 0, 'n'},
+    {"detail", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
     {"envsubst", no_argument, 0, 'E'},
+    {"no-color", no_argument, 0, 'b'},
+    {"format", required_argument, 0, 'f'},
+    {"formats", no_argument, 0, 'F'},
     {"syntax", required_argument, 0, 's'},
     {"syntaxes", no_argument, 0, 'S'},
+    // standard
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'V'},
 };
 
 int main(int argc, char *argv[]) {
@@ -56,10 +65,11 @@ int main(int argc, char *argv[]) {
     char err[128] = "";
     size_t errsz = sizeof(err);
     // options
-    bool use_color = false;  // unless --debug and not --no-color
+    bool use_color = false;  // unless --detail and not --no-color
     bool no_color = false;   // --no-color default
-    bool use_debug = false;
+    bool use_detail = false;
     bool use_env = false;
+    char *use_format = "plain";
     char *use_syntax = "default";
     char *path = "-";
     int pathind = 0;
@@ -72,23 +82,19 @@ int main(int argc, char *argv[]) {
     int o;
     while ((o = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
         switch (o) {
+            // standard
             case 'h':
                 print_usage();
                 goto done;
             case 'V':
                 print_version();
                 goto done;
-            case 'D':
-                use_debug = true;
-                break;
-            case 'n':
+            // specific
+            case 'b':
                 no_color = true;
                 break;
-            case 'S':
-                print_syntaxes();
-                goto done;
-            case 's':
-                use_syntax = optarg;
+            case 'd':
+                use_detail = true;
                 break;
             case 'e':
                 use_env = true;
@@ -97,6 +103,19 @@ int main(int argc, char *argv[]) {
                 use_env = true;
                 use_syntax = "ggenv";
                 break;
+            case 'f':
+                print_formats();
+                goto done;
+            case 'F':
+                use_format = optarg;
+                break;
+            case 'S':
+                print_syntaxes();
+                goto done;
+            case 's':
+                use_syntax = optarg;
+                break;
+            // positional
             case 1:
                 if (pathind > 0) {
                     snprintf(err, errsz, "multiple paths not allowed\n");
@@ -106,6 +125,7 @@ int main(int argc, char *argv[]) {
                 pathind = optind - 1;
                 path = argv[pathind];
                 break;
+            // errors
             case '?':
                 snprintf(err, errsz, "unrecognized option '%s'\n", argv[optind - 1]);
                 result = false;
@@ -145,15 +165,15 @@ int main(int argc, char *argv[]) {
     }
 
     // color
-    use_color = (use_debug && !no_color) ? true : false;
+    use_color = (use_detail && !no_color) ? true : false;
     // print title
-    if (use_debug) {
-        vsub_print_debug_title(use_color);
+    if (use_detail) {
+        vsub_print_detail_title(use_color);
     }
 
     // run
-    if (use_debug) {
-        vsub_print_debug_metrics(&sub, true, use_color);
+    if (use_detail) {
+        vsub_print_detail_metrics(&sub, true, use_color);
     }
     if (!vsub_alloc(&sub)) {
         result = false;
@@ -164,14 +184,14 @@ int main(int argc, char *argv[]) {
         goto done;
     }
     // print result
-    if (!use_debug) {
+    if (!use_detail) {
         puts(sub.res);
     }
 
 done:
-    // print errors and debug info
-    if (use_debug && (err[0] == '\0')) {  // don't print debug info if root error
-        vsub_print_debug_metrics(&sub, false, use_color);
+    // print errors and detailed info
+    if (use_detail && (err[0] == '\0')) {  // don't print detailed info if root error
+        vsub_print_detail_metrics(&sub, false, use_color);
     }
     vsub_print_error_str(err, use_color);
     vsub_print_error_sub(&sub, use_color);
@@ -181,8 +201,8 @@ done:
     }
     vsub_free(&sub);
     // final report and exit
-    if (use_debug) {
-        vsub_print_debug_result_status(result, use_color);
+    if (use_detail) {
+        vsub_print_detail_result_status(result, use_color);
     }
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
 }
