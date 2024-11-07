@@ -23,7 +23,7 @@ tasks:
   clean:
     desc: Clean all builder artefacts.
     cmds:
-      - rm -rf build-*
+      - rm -rf build-* subprojects
       - docker compose down --rmi local --volumes
 
   # builder
@@ -41,9 +41,17 @@ tasks:
 
   inbuilder:build:  # runs in docker container
     cmds:
+      - task: inbuilder:wrapdb
       - task: inbuilder:setup
       - task: inbuilder:parsers
       - meson compile -C build-release
+
+  inbuilder:wrapdb:
+    internal: true
+    status:
+      - test -f subprojects/wrapdb.json
+    cmds:
+      - meson wrap update-db
 
   inbuilder:setup:  # runs in docker container
     internal: true

@@ -8,7 +8,8 @@ src = files(
     'src/detail.c',
     'src/error.c',
     'src/main.c',
-    'src/output.c',
+    'src/output/json.c',
+    'src/output/plain.c',
     'src/vsub.c',
     'src/input/text_file.c',
     'src/input/text_str.c',
@@ -17,7 +18,10 @@ src = files(
     'src/input/vars_env.c',
     'src/syntax/default/parser.c',
 )
+deps = [
+    dependency('libcjson', version: '>=1.7.18'),
+]
 
-library('vsub', src, install: true)
-executable('vsub', src, install: true)
+library('vsub', src, dependencies: deps, install: true)
+executable('vsub', src, dependencies: deps, install: true)
 install_headers('src/vsub.h')
