@@ -6,28 +6,8 @@
 #include "vsub.h"
 
 
-#define debug(...) {fputs(CD, stderr); fprintf(stderr, __VA_ARGS__); fputs(CR, stderr);}
-#define error(...) {fputs(CE, stderr); fprintf(stderr, __VA_ARGS__); fputs(CR, stderr);}
-#define success(...) {fputs(CS, stderr); fprintf(stderr, __VA_ARGS__); fputs(CR, stderr);}
-char *CE = "", *CS = "", *CT = "", *CH = "", *CD = "", *CR = "";
-
-const char *version = "vsub " VSUB_VERSION;
-
 static void print_version() {
-    puts(version);
-}
-
-static void print_usage() {
-    puts("usage: vsub [options] [- | path]");
-    puts("  options:");
-    puts("    -s, --syntax=name  syntax to use; default: 'default'");
-    puts("    -e, --env          use environment variables");
-    puts("        --envsubst     use environment variables and 'ggenv' syntax");
-    puts("        --syntaxes     print list of supported syntaxes");
-    puts("    -n, --no-color     turn off color in debug mode");
-    puts("        --debug        print verbose log to stderr");
-    puts("        --version      show tool name, version, and libvsub version");
-    puts("    -h, --help         show this help and exit");
+    puts("vsub " VSUB_VERSION);
 }
 
 static void print_syntaxes() {
@@ -45,6 +25,19 @@ static void print_syntaxes() {
     }
 }
 
+static void print_usage() {
+    puts("usage: vsub [options] [- | path]");
+    puts("  options:");
+    puts("    -s, --syntax=name  syntax to use; default: 'default'");
+    puts("    -e, --env          use environment variables");
+    puts("        --envsubst     use environment variables and 'ggenv' syntax");
+    puts("        --syntaxes     print list of supported syntaxes");
+    puts("    -n, --no-color     turn off color in debug mode");
+    puts("        --debug        print verbose log to stderr");
+    puts("        --version      show tool name, version, and libvsub version");
+    puts("    -h, --help         show this help and exit");
+}
+
 static const char *shortopts = "-hVdneEs:S";
 static struct option longopts[] = {
     {"help", no_argument, 0, 'h'},
@@ -59,9 +52,11 @@ static struct option longopts[] = {
 
 int main(int argc, char *argv[]) {
     bool result = true;
+    char err[64] = "";
     Vsub sub;
     vsub_init(&sub);
-    bool use_color = true;  // if not turned off by option, turned off in non-debug
+    bool use_color = false;  // unless --debug and not --no-color
+    bool no_color = false;  // --no-color default
     bool use_debug = false;
     bool use_env = false;
     char *use_syntax = "default";
@@ -74,19 +69,19 @@ int main(int argc, char *argv[]) {
         switch (o) {
             case 'h':
                 print_usage();
-                exit(EXIT_SUCCESS);
+                goto done;
             case 'V':
                 print_version();
-                exit(EXIT_SUCCESS);
+                goto done;
             case 'D':
                 use_debug = true;
                 break;
             case 'n':
-                use_color = false;
+                no_color = true;
                 break;
             case 'S':
                 print_syntaxes();
-                exit(EXIT_SUCCESS);
+                goto done;
             case 's':
                 use_syntax = optarg;
                 break;
@@ -99,49 +94,40 @@ int main(int argc, char *argv[]) {
                 break;
             case 1:
                 if (pathind > 0) {
-                    error("multiple path args not allowed\n");
-                    exit(EXIT_FAILURE);
+                    snprintf(err, 64, "multiple path args not allowed\n");
+                    result = false;
+                    goto done;
                 }
                 pathind = optind - 1;
                 path = argv[pathind];
                 break;
             default:
-                error("unexpected getopt character code 0%o\n", o);
-                exit(EXIT_FAILURE);
+                snprintf(err, 64, "unexpected getopt character code 0%o\n", o);
+                result = false;
+                goto done;
         }
     }
     // color
-    if (!use_debug) {
-        use_color = false;
-    }
-    if (use_color) {
-        CE = "\033[31m";          // error
-        CS = "\033[92;1m";        // success
-        CT = "\033[30;1;106m";    // title
-        CH = "\033[0m\033[1m";    // reset and highlight
-        CD = "\033[2m";           // debug/dimmed
-        CR = "\033[0m";           // reset
-    }
-
+    use_color = (use_debug && !no_color) ? true : false;
     // title
     if (use_debug) {
-        debug("%s%s %s %s\n", CR, CT, version, CR);
+        vsub_print_debug_title(use_color);
     }
-
     // syntax
-    if ((sub.syntax = vsub_find_syntax(use_syntax)) == NULL) {
-        error("unsupported syntax %s\n", use_syntax);
+    if ((sub.syntax = vsub_syntax_lookup(use_syntax)) == NULL) {
+        snprintf(err, 64, "unsupported syntax %s\n", use_syntax);
         result = false;
         goto done;
     }
     // input
     if (strcmp(path, "-") != 0) {
         if (!(fp = fopen(path, "r"))) {
-            error("unable to read file %s\n", path);
+            snprintf(err, 64, "unable to read file %s\n", path);
             result = false;
             goto done;
         }
         if (!vsub_use_text_from_file(&sub, fp)) {
+            snprintf(err, 64, "out of memory\n");
             result = false;
             goto done;
         }
@@ -149,6 +135,7 @@ int main(int argc, char *argv[]) {
     // vars
     if (use_env) {
         if (!vsub_add_vars_from_env(&sub)) {
+            snprintf(err, 64, "out of memory\n");
             result = false;
             goto done;
         }
@@ -156,17 +143,7 @@ int main(int argc, char *argv[]) {
 
     // run
     if (use_debug) {
-        debug("input file: %s%s\n", CH, (fp == stdin) ? "<stdin>" : path);
-        debug("syntax: %s%s (%s)\n", CH, sub.syntax->name, sub.syntax->title);
-        debug("text source: %s%s\n", CH, sub.aux.tsrc->name);
-        debug("vars sources:");
-        for (VsubVarsSrc *vsrc = sub.aux.vsrc; vsrc != NULL; vsrc = vsrc->prev) {
-            debug(" %s%s", CH, vsrc->name);
-        }
-        debug("\n");
-        debug("max input len: %s%ld%s\n", CH, sub.maxinp, sub.maxinp == 0 ? " (unlimited)" : "");
-        debug("max result len: %s%ld%s\n", CH, sub.maxres, sub.maxres == 0 ? " (unlimited)" : "");
-        debug("depth: %s%d\n", CH, sub.depth);
+        vsub_print_debug_metrics(&sub, true, use_color);
     }
     if (!vsub_alloc(&sub)) {
         result = false;
@@ -181,49 +158,17 @@ int main(int argc, char *argv[]) {
     }
 
 done:
+    vsub_print_error_str(err, use_color);
+    vsub_print_error_sub(&sub, use_color);
     if (use_debug) {
-        debug("result:\n%s%s\n", CH, sub.res);
-        debug("plain: %s%s\n", CH, (sub.substc == 0) ? "yes" : "no");
-        debug("truncated: %s%s\n", CH, sub.trunc ? "yes" : "no");
-        debug("character read attempts: %s%ld\n", CH, sub.getc);
-        debug("parsed characters: %s%ld\n", CH, sub.inpc);
-        debug("result characters: %s%ld\n", CH, sub.resc);
-        debug("substitutions made: %s%ld\n", CH, sub.substc);
-        debug("iterations count: %s%d\n", CH, sub.depth);
-        debug("error code: %s%d\n", CH, sub.err);
-        debug("error var name: %s%s\n", CH, sub.errvar);
-        debug("error var msg: %s%s\n", CH, sub.errmsg);
-    }
-    switch (sub.err) {
-        case VSUB_SUCCESS:
-            // no parser errors
-            break;
-        case VSUB_INVALID_SYNTAX:
-            error("invalid input syntax on pos %ld\n", sub.inpc);
-            break;
-        case VSUB_VAR_ERROR:
-            error("variable \"%s\" on pos %ld: %s\n", sub.errvar, sub.inpc, sub.errmsg);
-            break;
-        case VSUB_PARSER_ERROR:
-            error("unexpected parser error on pos %ld\n", sub.inpc);
-            break;
-        case VSUB_MEMORY_ERROR:
-            error("out of memory\n");
-            break;
-        default:
-            break;
+        vsub_print_debug_metrics(&sub, false, use_color);
     }
     if (fp != stdin && fp != NULL) {
         fclose(fp);
     }
     vsub_free(&sub);
     if (use_debug) {
-        if (result) {
-            success("Succeeded.\n");
-        }
-        else {
-            error("Failed.\n");
-        }
+        vsub_print_debug_result_status(result, use_color);
     }
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
 }

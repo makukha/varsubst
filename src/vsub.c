@@ -26,7 +26,7 @@ const VsubParser VSUB_PARSER[] = {
 };
 const size_t VSUB_SYNTAX_COUNT = sizeof(VSUB_SYNTAX) / sizeof(VSUB_SYNTAX[0]);
 
-const VsubSyntax *vsub_find_syntax(const char *name) {
+const VsubSyntax *vsub_syntax_lookup(const char *name) {
     for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
         if (strcmp(name, VSUB_SYNTAX[i].name) == 0) {
             return &VSUB_SYNTAX[i];
@@ -89,9 +89,12 @@ void aux_add_vsrc(Auxil *aux, VsubVarsSrc *src) {
 
 static int aux_getchar(Auxil *aux) {
     Vsub *sub = aux->sub;
-    if (sub->maxinp == 0 || sub->getc < sub->maxinp) {
+    sub->gcac++;
+    if (sub->maxinp == 0 || sub->gcac < sub->maxinp) {
         int c = aux->tsrc->getchar(aux->tsrc);
-        sub->getc++;
+        if (c >= 0) {
+            sub->gcbc++;
+        }
         return c;
     }
     else {
@@ -175,11 +178,12 @@ static void vsub_prepare_to_run(Vsub *sub) {
     }
     sub->errmsg = sub->errvar;  // set to empty string or NULL
     sub->trunc = false;
-    sub->getc = 0;
+    sub->gcac = 0;
+    sub->gcbc = 0;
     sub->inpc = 0;
     sub->resc = 0;
     sub->substc = 0;
-    sub->depthc = 0;
+    sub->iterc = 0;
 }
 
 void vsub_init(Vsub *sub) {

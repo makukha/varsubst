@@ -72,7 +72,7 @@ typedef struct VsubSyntax {
     const char *name;
     const char *title;
 } VsubSyntax;
-VSUB_EXPORT const VsubSyntax *vsub_find_syntax(const char *name);  // find by name
+VSUB_EXPORT const VsubSyntax *vsub_syntax_lookup(const char *name);  // find by name
 extern const VsubSyntax VSUB_SYNTAX[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAX_COUNT;
 #define VSUB_SX_DEFAULT 0
@@ -92,11 +92,12 @@ typedef struct Vsub {
     char *errvar;   // first variable name with error; NULL by default
     char *errmsg;   // variable error message; NULL by default
     bool trunc;     // whether result string was truncated because of maxinp or maxres
-    size_t getc;    // input character read attempts
+    size_t gcac;    // input characters requested
+    size_t gcbc;    // input characters returned other than EOF
     size_t inpc;    // parsed input length
     size_t resc;    // actual length of result str
     size_t substc;  // count of total substitutions made
-    char depthc;    // count of subst iterations actually performed
+    char iterc;     // count of subst iterations actually performed
     // internal data
     Auxil aux;
 } Vsub;
@@ -113,12 +114,25 @@ VSUB_EXPORT bool vsub_add_vars_from_arglist(Vsub *sub, int c, const char *kv[]);
 VSUB_EXPORT bool vsub_add_vars_from_arrays(Vsub *sub, int c, const char *k[], const char *v[]);
 VSUB_EXPORT bool vsub_add_vars_from_env(Vsub *sub);
 
-// error types
+// errors
 #define VSUB_SUCCESS 0
 #define VSUB_INVALID_SYNTAX 1
 #define VSUB_VAR_ERROR 2
 #define VSUB_PARSER_ERROR 3
 #define VSUB_MEMORY_ERROR 4
+typedef struct VsubError {
+    char id;
+    const char *title;
+} VsubError;
+extern const VsubError VSUB_ERRORS[];  // using VSUB_* above as indexes
+// error handling
+#define VSUB_COLOR_ERROR "\033[31;1m"
+VSUB_EXPORT void vsub_print_error_str(const char *str, bool use_color);
+VSUB_EXPORT void vsub_print_error_sub(const Vsub *sub, bool use_color);
+// debugging
+VSUB_EXPORT void vsub_print_debug_metrics(const Vsub *sub, bool before, bool use_color);
+VSUB_EXPORT void vsub_print_debug_title(bool use_color);
+VSUB_EXPORT void vsub_print_debug_result_status(bool result, bool use_color);
 
 
 #endif  // VSUB_H
