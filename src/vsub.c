@@ -260,7 +260,9 @@ void vsub_free(Vsub *sub) {
     }
     sub->aux.vsrc = NULL;
     // parser context
-    sub->aux.parser->destroy(sub->aux.pctx);
+    if (sub->aux.parser) {
+        sub->aux.parser->destroy(sub->aux.pctx);
+    }
 }
 
 bool vsub_run(Vsub *sub) {

@@ -51,19 +51,24 @@ static struct option longopts[] = {
 };
 
 int main(int argc, char *argv[]) {
+    // control flow
     bool result = true;
-    char err[64] = "";
-    Vsub sub;
-    vsub_init(&sub);
+    char err[128] = "";
+    size_t errsz = sizeof(err);
+    // options
     bool use_color = false;  // unless --debug and not --no-color
-    bool no_color = false;  // --no-color default
+    bool no_color = false;   // --no-color default
     bool use_debug = false;
     bool use_env = false;
     char *use_syntax = "default";
     char *path = "-";
     int pathind = 0;
+    // parser
+    Vsub sub;
+    vsub_init(&sub);
     FILE *fp = stdin;
 
+    opterr = 0;
     int o;
     while ((o = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
         switch (o) {
@@ -94,40 +99,38 @@ int main(int argc, char *argv[]) {
                 break;
             case 1:
                 if (pathind > 0) {
-                    snprintf(err, 64, "multiple path args not allowed\n");
+                    snprintf(err, errsz, "multiple paths not allowed\n");
                     result = false;
                     goto done;
                 }
                 pathind = optind - 1;
                 path = argv[pathind];
                 break;
+            case '?':
+                snprintf(err, errsz, "unrecognized option '%s'\n", argv[optind - 1]);
+                result = false;
+                goto done;
             default:
-                snprintf(err, 64, "unexpected getopt character code 0%o\n", o);
+                snprintf(err, errsz, "unexpected getopt character code 0%o\n", o);
                 result = false;
                 goto done;
         }
     }
-    // color
-    use_color = (use_debug && !no_color) ? true : false;
-    // title
-    if (use_debug) {
-        vsub_print_debug_title(use_color);
-    }
     // syntax
     if ((sub.syntax = vsub_syntax_lookup(use_syntax)) == NULL) {
-        snprintf(err, 64, "unsupported syntax %s\n", use_syntax);
+        snprintf(err, errsz, "unsupported syntax %s\n", use_syntax);
         result = false;
         goto done;
     }
     // input
     if (strcmp(path, "-") != 0) {
         if (!(fp = fopen(path, "r"))) {
-            snprintf(err, 64, "unable to read file %s\n", path);
+            snprintf(err, errsz, "unable to read file %s\n", path);
             result = false;
             goto done;
         }
         if (!vsub_use_text_from_file(&sub, fp)) {
-            snprintf(err, 64, "out of memory\n");
+            snprintf(err, errsz, "out of memory\n");
             result = false;
             goto done;
         }
@@ -135,10 +138,17 @@ int main(int argc, char *argv[]) {
     // vars
     if (use_env) {
         if (!vsub_add_vars_from_env(&sub)) {
-            snprintf(err, 64, "out of memory\n");
+            snprintf(err, errsz, "out of memory\n");
             result = false;
             goto done;
         }
+    }
+
+    // color
+    use_color = (use_debug && !no_color) ? true : false;
+    // print title
+    if (use_debug) {
+        vsub_print_debug_title(use_color);
     }
 
     // run
@@ -153,20 +163,24 @@ int main(int argc, char *argv[]) {
         result = false;
         goto done;
     }
+    // print result
     if (!use_debug) {
         puts(sub.res);
     }
 
 done:
-    vsub_print_error_str(err, use_color);
-    vsub_print_error_sub(&sub, use_color);
-    if (use_debug) {
+    // print errors and debug info
+    if (use_debug && (err[0] == '\0')) {  // don't print debug info if root error
         vsub_print_debug_metrics(&sub, false, use_color);
     }
+    vsub_print_error_str(err, use_color);
+    vsub_print_error_sub(&sub, use_color);
+    // deallocate resources
     if (fp != stdin && fp != NULL) {
         fclose(fp);
     }
     vsub_free(&sub);
+    // final report and exit
     if (use_debug) {
         vsub_print_debug_result_status(result, use_color);
     }
