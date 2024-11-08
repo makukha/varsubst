@@ -15,9 +15,9 @@
 // syntaxes
 
 const VsubSyntax VSUB_SYNTAX[] = {
-    {.id=0, .name="default", .title="simple direct substitution"},
-    {.id=1, .name="dc243", .title="Docker Compose v2.4.3"},
-    {.id=2, .name="ggenv", .title="GNU gettext envsubst"},
+    {0, "default", "simple direct substitution"},
+    {1, "dc243",   "Docker Compose v2.4.3"},
+    {2, "ggenv",   "GNU gettext envsubst"},
 };
 const VsubParser VSUB_PARSER[] = {
     PARSER(vsub_sx_default),
