@@ -11,7 +11,9 @@ static void print_version() {
 }
 
 static void print_formats() {
-    puts("json\nplain");
+    for (size_t i = 0; i < VSUB_FORMAT_COUNT; i++) {
+        puts(VSUB_FORMAT[i]);
+    }
 }
 
 static void print_syntaxes() {
@@ -36,8 +38,8 @@ static void print_usage() {
     puts("    -e, --env         use environment variables");
     puts("    -E, --envsubst    same as '--env --syntax=ggenv'");
     puts("    -f, --format=STR  set output format; default: 'plain'");
-    puts("    -d, --detail      add extended details");
-    puts("    -b, --no-color    turn off color in --detail mode");
+    puts("    -d, --detailed    add extended details");
+    puts("    -b, --no-color    turn off color in --detailed mode");
     puts("    -F, --formats     list supported output formats");
     puts("    -S, --syntaxes    list supported syntaxes");
     puts("    -V, --version     show tool name, version, and libvsub version");
@@ -46,7 +48,7 @@ static void print_usage() {
 
 static const char *shortopts = "-hVbdeEf:Fs:S";
 static struct option longopts[] = {
-    {"detail", no_argument, 0, 'd'},
+    {"detailed", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
     {"envsubst", no_argument, 0, 'E'},
     {"no-color", no_argument, 0, 'b'},
@@ -65,9 +67,9 @@ int main(int argc, char *argv[]) {
     char err[128] = "";
     size_t errsz = sizeof(err);
     // options
-    bool use_color = false;  // unless --detail and not --no-color
+    bool use_color = false;  // unless --detailed and not --no-color
     bool no_color = false;   // --no-color default
-    bool use_detail = false;
+    bool use_detailed = false;
     bool use_env = false;
     char *use_format = "plain";
     char *use_syntax = "default";
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]) {
                 no_color = true;
                 break;
             case 'd':
-                use_detail = true;
+                use_detailed = true;
                 break;
             case 'e':
                 use_env = true;
@@ -104,11 +106,11 @@ int main(int argc, char *argv[]) {
                 use_syntax = "ggenv";
                 break;
             case 'f':
-                print_formats();
-                goto done;
-            case 'F':
                 use_format = optarg;
                 break;
+            case 'F':
+                print_formats();
+                goto done;
             case 'S':
                 print_syntaxes();
                 goto done;
@@ -163,18 +165,17 @@ int main(int argc, char *argv[]) {
             goto done;
         }
     }
-
-    // color
-    use_color = (use_detail && !no_color) ? true : false;
-    // print title
-    if (use_detail) {
-        vsub_print_detail_title(use_color);
+    // output
+    int outfmt;
+    if ((outfmt = vsub_format_lookup(use_format)) == -1) {
+        snprintf(err, errsz, "unsupported format %s\n", use_format);
+        result = false;
+        goto done;
     }
+    // color
+    use_color = (use_detailed && !no_color) ? true : false;
 
     // run
-    if (use_detail) {
-        vsub_print_detail_metrics(&sub, true, use_color);
-    }
     if (!vsub_alloc(&sub)) {
         result = false;
         goto done;
@@ -183,26 +184,36 @@ int main(int argc, char *argv[]) {
         result = false;
         goto done;
     }
+
     // print result
-    if (!use_detail) {
-        puts(sub.res);
+    switch (outfmt) {
+        case VSUB_FMT_PLAIN:
+            if (vsub_fputs_plain(&sub, stdout, result, use_color, use_detailed) == EOF) {
+                snprintf(err, errsz, "output error\n");
+                result = false;
+                goto done;
+            }
+            break;
+        case VSUB_FMT_JSON:
+            if (vsub_fputs_json(&sub, stdout, use_detailed) == EOF) {
+                snprintf(err, errsz, "output error\n");
+                result = false;
+                goto done;
+            }
+            break;
+        default:
+            snprintf(err, errsz, "unsupported format %d\n", outfmt);
+            result = false;
+            goto done;
     }
 
 done:
-    // print errors and detailed info
-    if (use_detail && (err[0] == '\0')) {  // don't print detailed info if root error
-        vsub_print_detail_metrics(&sub, false, use_color);
-    }
-    vsub_print_error_str(err, use_color);
     vsub_print_error_sub(&sub, use_color);
+    vsub_print_error_str(err, use_color);
     // deallocate resources
+    vsub_free(&sub);
     if (fp != stdin && fp != NULL) {
         fclose(fp);
-    }
-    vsub_free(&sub);
-    // final report and exit
-    if (use_detail) {
-        vsub_print_detail_result_status(result, use_color);
     }
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
 }

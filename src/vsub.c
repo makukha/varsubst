@@ -1,18 +1,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vsub.h"
-
 #include "syntax/default/parser.h"
 
+
+// syntaxes
 
 #define PARSER(pfx) {\
     .create=(void *(*)(void *))pfx##_create,\
     .parse=(int (*)(void *, void *))pfx##_parse,\
     .destroy=(void (*)(void *))pfx##_destroy\
 }
-
-
-// syntaxes
 
 const VsubSyntax VSUB_SYNTAX[] = {
     {0, "default", "simple direct substitution"},
@@ -36,36 +34,51 @@ const VsubSyntax *vsub_syntax_lookup(const char *name) {
 }
 
 
+// output formats
+
+const char *VSUB_FORMAT[] = {"plain", "json"};
+const size_t VSUB_FORMAT_COUNT = sizeof(VSUB_FORMAT) / sizeof(VSUB_FORMAT[0]);
+
+int vsub_format_lookup(const char *name) {
+    for (int i = 0; i < VSUB_FORMAT_COUNT; i++) {
+        if (strcmp(name, VSUB_FORMAT[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 // memory management
 
-static bool aux_request_res_size(Auxil *aux, size_t sz) {
+static bool aux_request_resbuf(Auxil *aux, size_t sz) {
     Vsub *sub = aux->sub;
     if (sz <= aux->resz) {
         return true;
     }
     size_t newsz = sz + VSUB_BRES_INC;
-    char *newbuf = realloc(sub->res, sz);
+    char *newbuf = realloc(aux->resbuf, sz);
     if (!newbuf) {
         sub->err = VSUB_MEMORY_ERROR;
         return false;
     }
+    aux->resbuf = newbuf;
     aux->resz = newsz;
-    sub->res = newbuf;
     return true;
 }
 
-static bool aux_request_err_size(Auxil *aux, size_t sz) {
+static bool aux_request_errbuf(Auxil *aux, size_t sz) {
     Vsub *sub = aux->sub;
     if (sz <= aux->errz) {
         return true;
     }
-    char *newbuf = realloc(sub->errvar, sz);
+    char *newbuf = realloc(aux->errbuf, sz);
     if (!newbuf) {
         sub->err = VSUB_MEMORY_ERROR;
         return false;
     }
+    aux->errbuf = newbuf;
     aux->errz = sz;
-    sub->errvar = newbuf;
     return true;
 }
 
@@ -118,6 +131,7 @@ static const char *aux_getvalue(Auxil *aux, const char *var) {
 }
 
 static bool vsub_append(Vsub *sub, int epos, char *str) {
+    sub->res = sub->aux.resbuf;  // make non-NULL on first append
     sub->inpc = epos;
     size_t current = sub->resc;
     size_t required = sub->resc + strlen(str);
@@ -132,7 +146,7 @@ static bool vsub_append(Vsub *sub, int epos, char *str) {
     if (delta <= 0) {
         return false;
     }
-    if (!aux_request_res_size(&(sub->aux), allowed + 1)) {
+    if (!aux_request_resbuf(&(sub->aux), allowed + 1)) {
         return false;
     }
     char *end = stpncpy(sub->res + current, str, delta);
@@ -149,14 +163,15 @@ static bool aux_append_subst(Auxil *aux, int epos, char *str) {
     if (!vsub_append(aux->sub, epos, str)) {
         return false;
     }
-    ((Vsub *)(aux->sub))->substc++;
+    ((Vsub *)(aux->sub))->subc++;
     return true;
 }
 
 static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
     Vsub *sub = aux->sub;
+    sub->errvar = aux->errbuf;  // make non-NULL when error is set
     sub->inpc = epos;
-    if (!aux_request_err_size(aux, strlen(var) + strlen(msg) + 2)) {
+    if (!aux_request_errbuf(aux, strlen(var) + strlen(msg) + 2)) {
         return false;
     }
     sub->err = VSUB_VAR_ERROR;
@@ -169,20 +184,16 @@ static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
 // vsub management
 
 static void vsub_prepare_to_run(Vsub *sub) {
-    if (sub->res != NULL) {     // if allocated, set to empty string
-        *(sub->res) = '\0';
-    }
+    sub->res = NULL;
     sub->err = VSUB_SUCCESS;
-    if (sub->errvar != NULL) {  // if allocated, set to empty string
-        *(sub->errvar) = '\0';
-    }
-    sub->errmsg = sub->errvar;  // set to empty string or NULL
+    sub->errvar = NULL;
+    sub->errmsg = NULL;
     sub->trunc = false;
     sub->gcac = 0;
     sub->gcbc = 0;
     sub->inpc = 0;
     sub->resc = 0;
-    sub->substc = 0;
+    sub->subc = 0;
     sub->iterc = 0;
 }
 
@@ -193,8 +204,6 @@ void vsub_init(Vsub *sub) {
     sub->maxinp = 0;
     sub->maxres = 0;
     // vsub result
-    sub->res = NULL;     // tell vsub_prepare_to_run() that it is unallocated
-    sub->errvar = NULL;
     vsub_prepare_to_run(sub);
 
     // aux
@@ -208,7 +217,9 @@ void vsub_init(Vsub *sub) {
     // data
     sub->aux.tsrc = NULL;
     sub->aux.vsrc = NULL;
+    sub->aux.resbuf = NULL;
     sub->aux.resz = VSUB_BRES_MIN;
+    sub->aux.errbuf = NULL;
     sub->aux.errz = VSUB_BERR_MIN;
     // parser
     sub->aux.parser = NULL;
@@ -217,20 +228,17 @@ void vsub_init(Vsub *sub) {
 
 bool vsub_alloc(Vsub *sub) {
     // result and error buffers
-    if (!sub->res) {
-        if (!(sub->res = malloc(sub->aux.resz))) {
+    if (!sub->aux.resbuf) {
+        if (!(sub->aux.resbuf = malloc(sub->aux.resz))) {
             sub->err = VSUB_MEMORY_ERROR;
             return false;
         }
     }
-    if (!sub->errvar) {
-        if (!(sub->errvar = malloc(sub->aux.errz))) {
+    if (!sub->aux.errbuf) {
+        if (!(sub->aux.errbuf = malloc(sub->aux.errz))) {
             sub->err = VSUB_MEMORY_ERROR;
             return false;
         }
-        // let errvar and errmsg be the same empty string
-        sub->errvar[0] = '\0';
-        sub->errmsg = sub->errvar;
     }
     // parser
     sub->aux.parser = &VSUB_PARSER[sub->syntax->id];
@@ -244,10 +252,12 @@ bool vsub_alloc(Vsub *sub) {
 }
 
 void vsub_free(Vsub *sub) {
-    // result and error buffers
-    free(sub->res);
-    free(sub->errvar);
-    sub->res = sub->errvar = sub->errmsg = NULL;
+    // result buffer
+    free(sub->aux.resbuf);
+    sub->res = sub->aux.resbuf = NULL;
+    // result error buffer
+    free(sub->aux.errbuf);
+    sub->errvar = sub->errmsg = sub->aux.errbuf = NULL;
     // input text source
     free(sub->aux.tsrc);
     sub->aux.tsrc = NULL;

@@ -10,6 +10,7 @@ src = files(
     'src/main.c',
     'src/output/json.c',
     'src/output/plain.c',
+    'src/util.c',
     'src/vsub.c',
     'src/input/text_file.c',
     'src/input/text_str.c',

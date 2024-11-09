@@ -34,8 +34,13 @@ void vsub_print_error_sub(const Vsub *sub, bool use_color) {
             fprintf(stderr, "%sinvalid input syntax on pos %ld%s\n", C, sub->inpc, R);
         break;
         case VSUB_VAR_ERROR:
-            fprintf(stderr, "%svariable error: %s %s on pos %ld%s\n",
-                C, sub->errvar, sub->errmsg, sub->inpc, R);
+            if (sub->errvar && sub->errmsg) {  // expected
+                fprintf(stderr, "%svariable error: %s %s on pos %ld%s\n",
+                    C, sub->errvar, sub->errmsg, sub->inpc, R);
+            }
+            else {  // fallback
+                fprintf(stderr, "%svariable error on pos %ld%s\n", C, sub->inpc, R);
+            }
         break;
         case VSUB_PARSER_ERROR:
             fprintf(stderr, "%sunexpected parser error on pos %ld%s\n", C, sub->inpc, R);
