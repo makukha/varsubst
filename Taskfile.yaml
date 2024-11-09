@@ -5,12 +5,17 @@ env:
 
 tasks:
 
-  # run
+  # run, test
 
   run:
     desc: Run "vsub" binary in container; $ task run -- --help
     cmds:
       - docker compose run --rm builder build-release/vsub {{.CLI_ARGS}}
+
+  test:
+    desc: Run tests in container.
+    cmds:
+      - docker compose run --rm builder task inbuilder:test
 
   # build, clean
 
@@ -30,7 +35,9 @@ tasks:
 
   build:builder:
     internal: true
-    sources: [.dev/Dockerfile]
+    sources:
+      - .dev/Dockerfile
+      - .dev/requirements.txt
     cmds:
       - docker compose build
 
@@ -66,3 +73,7 @@ tasks:
     cmds:
       - cmd: packcc {{.ITEM}}
         for: sources
+
+  inbuilder:test:  # runs in docker container
+    cmds:
+      - pytest -x tests

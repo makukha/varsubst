@@ -10,6 +10,9 @@ ARG TASK_VERSION=3.39.2
 ARG TASK_URL=https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_linux_amd64.deb
 ARG TASK_SHA256=d4ea84524cc4e0969e84f063fc99b9aba2090ec259c00a2e12d9ed1a182cf6af
 
+WORKDIR /build
+COPY requirements.txt ./
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,dst=/root/.cache/pip \
@@ -31,12 +34,11 @@ wget -qO /tmp/task.deb "${TASK_URL}"
 echo "${TASK_SHA256} /tmp/task.deb" | sha256sum --check
 apt-get install -y /tmp/task.deb
 
-# python build tools
-pip install gcovr meson ninja
+# python dev tools
+pip install -r requirements.txt
 
 rm -rf /tmp/* /var/tmp/*
 EOT
 
-WORKDIR /build
 VOLUME /root/.ccache
 ENTRYPOINT []

@@ -1,0 +1,10 @@
+# building
+meson
+ninja
+
+# trsting
+gcovr
+pytest
+pytest-sugar
+pytest-xdist
+rich
