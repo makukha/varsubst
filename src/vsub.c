@@ -114,8 +114,9 @@ static const char *aux_getvalue(Auxil *aux, const char *var) {
     return NULL;
 }
 
-static bool aux_append(Vsub *sub, int epos, char *str) {
-    sub->res = ((Auxil*)(sub->aux))->resbuf;  // make non-NULL on first append
+static bool aux_append(Auxil *aux, int epos, char *str) {
+    Vsub *sub = aux->sub;
+    sub->res = aux->resbuf;  // make non-NULL on first append
     sub->inpc = epos;
     size_t current = sub->resc;
     size_t required = sub->resc + strlen(str);
@@ -140,11 +141,11 @@ static bool aux_append(Vsub *sub, int epos, char *str) {
 }
 
 static bool aux_append_orig(Auxil *aux, int epos, char *str) {
-    return aux_append(aux->sub, epos, str);
+    return aux_append(aux, epos, str);
 }
 
 static bool aux_append_subst(Auxil *aux, int epos, char *str) {
-    if (!aux_append(aux->sub, epos, str)) {
+    if (!aux_append(aux, epos, str)) {
         return false;
     }
     aux->sub->subc++;
