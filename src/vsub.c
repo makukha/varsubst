@@ -6,7 +6,7 @@
 #include "syntax/default/parser.h"
 
 
-// syntaxes
+// --- syntaxes
 
 #define PARSER(pfx) {\
     .create=(void *(*)(void *))pfx##_create,\
@@ -19,11 +19,13 @@ const VsubSyntax VSUB_SYNTAXES[] = {
 //    {1, "dc243",   "Docker Compose v2.4.3"},
 //    {2, "ggenv",   "GNU gettext envsubst"},
 };
+
 const VsubParser VSUB_PARSERS[] = {
     PARSER(vsub_sx_default),
-    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
-    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_ggenv)
+//    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
+//    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_ggenv)
 };
+
 const size_t VSUB_SYNTAXES_COUNT = sizeof(VSUB_SYNTAXES) / sizeof(VSUB_SYNTAXES[0]);
 
 const VsubSyntax *vsub_FindSyntax(const char *name) {
@@ -36,9 +38,14 @@ const VsubSyntax *vsub_FindSyntax(const char *name) {
 }
 
 
-// output formats
+// --- output formats
 
-const char *VSUB_FORMAT[] = {"plain", "json"};
+const char *VSUB_FORMAT[] = {
+    "plain",   // 0 = VSUB_FMT_PLAIN
+    "json",    // 1 = VSUB_FMT_JSON
+    "pretty",  // 2 = VSUB_FMT_PRETTY
+};
+
 const size_t VSUB_FORMAT_COUNT = sizeof(VSUB_FORMAT) / sizeof(VSUB_FORMAT[0]);
 
 int vsub_FindFormat(const char *name) {
@@ -51,16 +58,7 @@ int vsub_FindFormat(const char *name) {
 }
 
 
-// errors
-
-#define VSUB_ERR_FILE_READ -1  // match EOF
-#define VSUB_ERR_FILE_WRITE -2
-#define VSUB_ERR_FILE_OPEN -3
-#define VSUB_ERR_MEMORY -4
-#define VSUB_ERR_SYNTAX -5
-#define VSUB_ERR_VARIABLE -6
-#define VSUB_ERR_PARSER -7
-#define VSUB_ERR_UNKNOWN -8  // fallback
+// --- errors
 
 const char *VSUB_ERRORS[] = {
     "success",                  // 0 = VSUB_SUCCESS
@@ -71,11 +69,12 @@ const char *VSUB_ERRORS[] = {
     "invalid syntax",           // -5 = VSUB_ERR_SYNTAX
     "variable error",           // -6 = VSUB_ERR_VARIABLE
     "unexpected parser error",  // -7 = VSUB_ERR_PARSER
-    "unknown error",            // -8 = VSUB_ERR_UNKNOWN
+    "unexpected output error",  // -8 = VSUB_ERR_OUTPUT
+    "unknown error",            // -9 = VSUB_ERR_UNKNOWN
 };
 
 
-// memory management
+// --- memory management
 
 static bool aux_request_resbuf(Auxil *aux, size_t sz) {
     if (sz <= aux->resz) {
@@ -107,7 +106,7 @@ static bool aux_request_errbuf(Auxil *aux, size_t sz) {
 }
 
 
-// aux syntax api
+// --- aux parser api
 
 static int aux_getchar(Auxil *aux) {
     aux->sub->gcac++;
@@ -189,7 +188,7 @@ static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
 }
 
 
-// vsub management
+// -- vsub user api
 
 static void vsub_clear_results(Vsub *sub) {
     sub->res = NULL;

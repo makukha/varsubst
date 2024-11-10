@@ -3,12 +3,11 @@ project(
     version: '0.1.0',
     license: 'MIT',
     license_files: ['LICENSE'],
+    default_options: ['c_std=c11'],
 )
 src = files(
     'src/detail.c',
     'src/main.c',
-    'src/output/json.c',
-    'src/output/plain.c',
     'src/util.c',
     'src/vsub.c',
     'src/vsubio.c',
@@ -17,6 +16,9 @@ src = files(
     'src/input/vars_arglist.c',
     'src/input/vars_arrays.c',
     'src/input/vars_env.c',
+    'src/output/json.c',
+    'src/output/plain.c',
+    'src/output/pretty.c',
     'src/syntax/default/parser.c',
 )
 deps = [

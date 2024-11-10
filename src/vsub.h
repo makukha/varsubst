@@ -81,10 +81,12 @@ VSUB_EXPORT bool vsub_UseVarsFromEnv(Vsub *sub);
 
 #define VSUB_FMT_PLAIN 0
 #define VSUB_FMT_JSON 1
+#define VSUB_FMT_PRETTY 2
 
 VSUB_EXPORT int vsub_FindFormat(const char *name);
-VSUB_EXPORT int vsub_OutputPlain(Vsub *sub, FILE *fp, bool result, bool use_color, bool detailed);
+VSUB_EXPORT int vsub_OutputPlain(Vsub *sub, FILE *fp);
 VSUB_EXPORT int vsub_OutputJson(Vsub *sub, FILE *fp, bool detailed);
+VSUB_EXPORT int vsub_OutputPretty(Vsub *sub, FILE *fp, bool result, bool detailed);
 
 extern const char *VSUB_FORMAT[];  // using VSUB_FMT_* above as indexes
 extern const size_t VSUB_FORMAT_COUNT;
@@ -100,7 +102,8 @@ extern const size_t VSUB_FORMAT_COUNT;
 #define VSUB_ERR_SYNTAX -5
 #define VSUB_ERR_VARIABLE -6
 #define VSUB_ERR_PARSER -7
-#define VSUB_ERR_UNKNOWN -8
+#define VSUB_ERR_OUTPUT -8
+#define VSUB_ERR_UNKNOWN -9
 
 extern const char* VSUB_ERRORS[];  // using (- VSUB_ERR_*) above as indexes
 

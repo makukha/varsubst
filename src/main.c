@@ -26,7 +26,7 @@ static void print_syntaxes() {
         namew = (w > namew) ? w : namew;
     }
     // print
-    char *fmttpl = "%%-%ds  %%s\n";
+    const char *fmttpl = "%%-%ds  %%s\n";
     char fmt[sizeof(fmttpl) + 11];  // 10 bytes for %d and 1 byte for '\0'
     snprintf(fmt, sizeof(fmt), fmttpl, namew);
     for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
@@ -40,9 +40,8 @@ static void print_usage() {
     puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
     puts("    -e, --env         use environment variables");
     puts("    -E, --envsubst    same as '--env --syntax=ggenv'");
-    puts("    -f, --format=STR  set output format; default: 'plain'");
+    puts("    -f, --format=STR  set output format; default: pretty if -d else plain");
     puts("    -d, --detailed    add extended details");
-    puts("    -b, --no-color    turn off color in --detailed mode");
     puts("        --formats     list supported output formats");
     puts("        --syntaxes    list supported syntaxes");
     puts("        --version     show tool name, version, and libvsub version");
@@ -53,12 +52,11 @@ static void print_usage() {
 #define VSUB_OPT_FORMATS 1001
 #define VSUB_OPT_SYNTAXES 1002
 
-static const char *shortopts = "-hbdeEf:s:";
+static const char *shortopts = "-hdeEf:s:";
 static struct option longopts[] = {
     {"detailed", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
     {"envsubst", no_argument, 0, 'E'},
-    {"no-color", no_argument, 0, 'b'},
     {"format", required_argument, 0, 'f'},
     {"formats", no_argument, 0, VSUB_OPT_FORMATS},
     {"syntax", required_argument, 0, 's'},
@@ -72,11 +70,9 @@ int main(int argc, char *argv[]) {
     // control flow
     bool result = true;
     // options
-    bool use_color = false;  // unless --detailed and not --no-color
-    bool no_color = false;   // --no-color default
     bool use_detailed = false;
     bool use_env = false;
-    char *use_format = "plain";
+    char *use_format = NULL;
     char *use_syntax = "default";
     char *path = NULL;
     int pathind = 0;
@@ -98,9 +94,6 @@ int main(int argc, char *argv[]) {
                 print_version();
                 goto done;
             // specific
-            case 'b':
-                no_color = true;
-                break;
             case 'd':
                 use_detailed = true;
                 break;
@@ -139,7 +132,7 @@ int main(int argc, char *argv[]) {
                 result = false;
                 goto done;
             default:
-                printf_error("unexpected getopt code: 0%o", o);  // non-reproducible guard
+                printf_error("unexpected getopt code: %d", o);  // non-reproducible guard
                 result = false;
                 goto done;
         }
@@ -182,17 +175,18 @@ int main(int argc, char *argv[]) {
             goto done;
         }
     }
-    // output
+    // format
     int outfmt;
-    if ((outfmt = vsub_FindFormat(use_format)) == -1) {
-        printf_error("unsupported output format: %s", use_format);  // non-reproducible guard
-        result = false;
-        goto done;
+    if (!use_format) {
+        outfmt = use_detailed ? VSUB_FMT_PRETTY : VSUB_FMT_PLAIN;
     }
-
-    // --- set other options
-
-    use_color = (use_detailed && !no_color) ? true : false;
+    else {
+        if ((outfmt = vsub_FindFormat(use_format)) == -1) {
+            printf_error("unsupported output format: %s", use_format);  // non-reproducible guard
+            result = false;
+            goto done;
+        }
+    }
 
     // --- process
 
@@ -207,26 +201,38 @@ int main(int argc, char *argv[]) {
 
     // --- output result
 
+    int outres = 0;
     switch (outfmt) {
         case VSUB_FMT_PLAIN:
-            if (vsub_OutputPlain(&sub, stdout, result, use_color, use_detailed) == EOF) {
-                printf_error("failed to show results");  // todo: add granularity: file/memory error
-                result = false;
-                goto processing_failed;
-            }
+            outres = vsub_OutputPlain(&sub, stdout);
             break;
         case VSUB_FMT_JSON:
-            if (vsub_OutputJson(&sub, stdout, use_detailed) == EOF) {
-                printf_error("failed to show results");  // todo: add granularity: file/memory error
-                result = false;
-                goto processing_failed;
-            }
+            outres = vsub_OutputJson(&sub, stdout, use_detailed);
+            break;
+        case VSUB_FMT_PRETTY:
+            outres = vsub_OutputPretty(&sub, stdout, result, use_detailed);
             break;
         default:
-            printf_error("unsupported output format code: %d", outfmt);
+            printf_error("unsupported output format code: %d", outfmt);  // non-reproducible guard
             result = false;
             goto processing_failed;
     }
+    switch (outres) {
+        case VSUB_SUCCESS:
+            break;  // no processing errors
+        case VSUB_ERR_MEMORY:
+            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            result = false;
+            goto done;
+        case VSUB_ERR_OUTPUT:
+            printf_error(VSUB_ERRORS[-VSUB_ERR_OUTPUT]);
+            result = false;
+            goto done;
+        default:
+            printf_error("%s: %d", VSUB_ERRORS[-VSUB_ERR_UNKNOWN], outres);  // non-reproducible guard
+            result = false;
+            goto done;
+      }
 
 processing_failed:
 
@@ -234,7 +240,7 @@ processing_failed:
 
     switch (sub.err) {
         case VSUB_SUCCESS:
-            break;  // no proccesing errors
+            break;  // no processing errors
         case VSUB_ERR_MEMORY:
             printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
             break;
@@ -253,7 +259,7 @@ processing_failed:
             printf_error("%s: position %ld", VSUB_ERRORS[-VSUB_ERR_PARSER], sub.inpc);
             break;
         default:
-            printf_error(VSUB_ERRORS[-VSUB_ERR_UNKNOWN]);  // non-reproducible guard
+            printf_error("%s: %d", VSUB_ERRORS[-VSUB_ERR_UNKNOWN], sub.err);  // non-reproducible guard
             break;
     }
 
