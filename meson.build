@@ -20,7 +20,7 @@ src = files(
     'src/syntax/default/parser.c',
 )
 deps = [
-    dependency('libcjson', version: '>=1.7.18'),
+    dependency('libcjson', version: '>=1.7.18', static: true),
 ]
 
 library('vsub', src, dependencies: deps, install: true)

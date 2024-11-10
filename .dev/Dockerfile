@@ -13,14 +13,16 @@ ARG TASK_SHA256=d4ea84524cc4e0969e84f063fc99b9aba2090ec259c00a2e12d9ed1a182cf6af
 WORKDIR /build
 COPY requirements.txt ./
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,dst=/root/.cache/pip \
 <<EOT
 apt-get update
 
-# linux build tools
-apt-get install -y --no-install-recommends ccache jq wget
+# linux dev tools
+apt-get install -y --no-install-recommends ccache gdb jq wget
 
 # packcc
 wget -qO /tmp/packcc.tgz "${PACKCC_URL}"

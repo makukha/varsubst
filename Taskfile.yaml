@@ -5,25 +5,22 @@ env:
 
 tasks:
 
-  # run, test
+  # --- host ---
 
-  run:
-    desc: Run "vsub" binary in container; $ task run -- --help
+  dev:
+    desc: Run dev environment.
+    vars: {CMD: '{{if .CLI_ARGS}}task {{.CLI_ARGS}}{{else}}bash -i{{end}}'}
     cmds:
-      - docker compose run --rm builder build-release/vsub {{.CLI_ARGS}}
+      - task: devbuild
+      - docker compose run --rm dev {{.CMD}}
 
-  test:
-    desc: Run tests in container.
+  devbuild:
+    desc: Build dev environment.
+    sources:
+      - .dev/Dockerfile
+      - .dev/requirements.txt
     cmds:
-      - docker compose run --rm builder task inbuilder:test
-
-  # build, clean
-
-  build:
-    desc: Build project.
-    cmds:
-      - task: build:builder
-      - docker compose run --rm builder task inbuilder:build
+      - docker compose build
 
   clean:
     desc: Clean all builder artefacts.
@@ -31,49 +28,64 @@ tasks:
       - rm -rf build-* subprojects
       - docker compose down --rmi local --volumes
 
-  # builder
+  # --- guest ---
 
-  build:builder:
-    internal: true
-    sources:
-      - .dev/Dockerfile
-      - .dev/requirements.txt
+  run:
+    desc: Run target executable.
+    vars: {BTYPE: release}
     cmds:
-      - docker compose build
+      - task: build:release
+      - build-{{.BTYPE}}/vsub {{.CLI_ARGS}}
 
-  builder:shell:
-    desc: Shell to docker builder.
+  test:
+    desc: Run tests.
     cmds:
-      - docker compose run --rm builder /bin/bash -i
+      - task: build:release
+      - pytest -x tests
 
-  inbuilder:build:  # runs in docker container
+  debug:
+    desc: Run debugger.
     cmds:
-      - task: inbuilder:wrapdb
-      - task: inbuilder:setup
-      - task: inbuilder:parsers
-      - meson compile -C build-release
+      - task: build:debug
+      - gdb --tui build-debug/vsub
 
-  inbuilder:wrapdb:
+  build:
+    desc: Build debug and release.
+    cmds:
+      - task: build:release
+
+  build:*:
+    desc: Build debug or release.
+    vars: {BTYPE: '{{index .MATCH 0}}'}
+    cmds:
+      - task: setup:wrapdb
+      - task: setup:build:{{.BTYPE}}
+      - task: prebuild:parsers
+      - meson compile -C build-{{.BTYPE}}
+      - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
+
+  # setup steps
+
+  setup:wrapdb:
     internal: true
     status:
       - test -f subprojects/wrapdb.json
     cmds:
       - meson wrap update-db
 
-  inbuilder:setup:  # runs in docker container
+  setup:build:*:
     internal: true
+    vars: {BTYPE: '{{index .MATCH 0}}'}
     sources: [meson.build]
-    generates: [build-release/**/*]
+    generates: ['build-{{.BTYPE}}/**/*']
     cmds:
-      - meson setup build-release --buildtype=release
+      - meson setup build-{{.BTYPE}} --buildtype={{.BTYPE}}
 
-  inbuilder:parsers:  # runs in docker container
+  # prebuild steps
+
+  prebuild:parsers:
     internal: true
     sources: [src/syntax/*/parser.peg]
     cmds:
       - cmd: packcc {{.ITEM}}
         for: sources
-
-  inbuilder:test:  # runs in docker container
-    cmds:
-      - pytest -x tests
