@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     bool use_env = false;
     char *use_format = "plain";
     char *use_syntax = "default";
-    char *path = "-";
+    char *path = NULL;
     int pathind = 0;
     // parser
     Vsub sub;
@@ -145,17 +145,20 @@ int main(int argc, char *argv[]) {
         goto done;
     }
     // input
-    if (strcmp(path, "-") != 0) {
+    if (!path) {
+        fp = stdin;
+    }
+    else {
         if (!(fp = fopen(path, "r"))) {
             snprintf(err, errsz, "unable to read file %s\n", path);
             result = false;
             goto done;
         }
-        if (!vsub_use_text_from_file(&sub, fp)) {
-            snprintf(err, errsz, "out of memory\n");
-            result = false;
-            goto done;
-        }
+    }
+    if (!vsub_use_text_from_file(&sub, fp)) {
+        snprintf(err, errsz, "out of memory\n");
+        result = false;
+        goto done;
     }
     // vars
     if (use_env) {
