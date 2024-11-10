@@ -31,6 +31,6 @@ bool vsub_add_vars_from_arrays(Vsub *sub, int c, const char *k[], const char *v[
     src->keys = k;
     src->vals = v;
     src->count = c;
-    aux_add_vsrc(&(sub->aux), (VsubVarsSrc *)src);
+    vsub_add_vsrc(sub, (VsubVarsSrc *)src);
     return true;
 }

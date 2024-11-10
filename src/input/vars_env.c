@@ -19,6 +19,6 @@ bool vsub_add_vars_from_env(Vsub *sub) {
     }
     ((VsubVarsSrc *)src)->name = NAME;
     ((VsubVarsSrc *)src)->getvalue = (const char *(*)(void *, const char *))_getvalue;
-    aux_add_vsrc(&(sub->aux), (VsubVarsSrc *)src);
+    vsub_add_vsrc(sub, (VsubVarsSrc *)src);
     return true;
 }

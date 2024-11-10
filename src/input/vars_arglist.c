@@ -30,6 +30,6 @@ bool vsub_add_vars_from_arglist(Vsub *sub, int c, const char *kv[]) {
     ((VsubVarsSrc *)src)->getvalue = (const char *(*)(void *, const char *))_getvalue;
     src->kv = kv;
     src->count = c;
-    aux_add_vsrc(&(sub->aux), (VsubVarsSrc *)src);
+    vsub_add_vsrc(sub, (VsubVarsSrc *)src);
     return true;
 }

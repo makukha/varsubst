@@ -55,8 +55,6 @@ typedef struct Auxil {
     bool (*append_subst)(void *aux, int epos, const char *str);
     bool (*append_error)(void *aux, int epos, const char *errvar, const char* errmsg);
     // data
-    VsubTextSrc *tsrc;
-    VsubVarsSrc *vsrc;
     char *resbuf;  // result buffer
     size_t resz;   // result buffer size
     char *errbuf;  // error buffer
@@ -65,10 +63,6 @@ typedef struct Auxil {
     const VsubParser *parser;
     void *pctx;
 } Auxil;
-
-// input helpers
-void aux_set_tsrc(Auxil *aux, VsubTextSrc *src);
-void aux_add_vsrc(Auxil *aux, VsubVarsSrc *src);
 
 // buffer management constants
 #define VSUB_BRES_MIN 256  // initial result buffer size
@@ -115,6 +109,8 @@ typedef struct Vsub {
     size_t subc;    // count of total substitutions made
     char iterc;     // count of subst iterations actually performed
     // internal data
+    void *tsrc;
+    void *vsrc;
     Auxil aux;
 } Vsub;
 
@@ -126,6 +122,10 @@ VSUB_EXPORT void vsub_free(Vsub *sub);
 
 
 // --- input sources -- PART 2
+
+// input helpers
+void vsub_set_tsrc(Vsub *sub, VsubTextSrc *src);
+void vsub_add_vsrc(Vsub *sub, VsubVarsSrc *src);
 
 VSUB_EXPORT bool vsub_use_text_from_file(Vsub *sub, FILE *fp);
 VSUB_EXPORT bool vsub_use_text_from_str(Vsub *sub, const char *s);

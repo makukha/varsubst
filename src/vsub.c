@@ -85,16 +85,16 @@ static bool aux_request_errbuf(Auxil *aux, size_t sz) {
 
 // input sources management
 
-void aux_set_tsrc(Auxil *aux, VsubTextSrc *src) {
-    if (aux->tsrc) {
-        free(aux->tsrc);
+void vsub_set_tsrc(Vsub *sub, VsubTextSrc *src) {
+    if (sub->tsrc) {
+        free(sub->tsrc);
     }
-    aux->tsrc = src;
+    sub->tsrc = src;
 }
 
-void aux_add_vsrc(Auxil *aux, VsubVarsSrc *src) {
-    src->prev = aux->vsrc;
-    aux->vsrc = src;
+void vsub_add_vsrc(Vsub *sub, VsubVarsSrc *src) {
+    src->prev = sub->vsrc;
+    sub->vsrc = src;
 }
 
 
@@ -104,7 +104,7 @@ static int aux_getchar(Auxil *aux) {
     Vsub *sub = aux->sub;
     sub->gcac++;
     if (sub->maxinp == 0 || sub->gcac < sub->maxinp) {
-        int c = aux->tsrc->getchar(aux->tsrc);
+        int c = ((VsubTextSrc*)(sub->tsrc))->getchar(sub->tsrc);
         if (c >= 0) {
             sub->gcbc++;
         }
@@ -117,7 +117,7 @@ static int aux_getchar(Auxil *aux) {
 }
 
 static const char *aux_getvalue(Auxil *aux, const char *var) {
-    VsubVarsSrc *vsrc = aux->vsrc;
+    VsubVarsSrc *vsrc = ((Vsub*)(aux->sub))->vsrc;
     while (vsrc) {
         const char *value = vsrc->getvalue(vsrc, var);
         if (value) {
@@ -206,6 +206,9 @@ void vsub_init(Vsub *sub) {
     // vsub result
     vsub_prepare_to_run(sub);
 
+	// sources
+    sub->tsrc = NULL;
+    sub->vsrc = NULL;
     // aux
     sub->aux.sub = sub;
     // aux syntax methods
@@ -215,8 +218,6 @@ void vsub_init(Vsub *sub) {
     sub->aux.append_subst = (bool (*)(void *, int, const char *))aux_append_subst;
     sub->aux.append_error = (bool (*)(void *, int, const char *, const char *))aux_append_error;
     // data
-    sub->aux.tsrc = NULL;
-    sub->aux.vsrc = NULL;
     sub->aux.resbuf = NULL;
     sub->aux.resz = VSUB_BRES_MIN;
     sub->aux.errbuf = NULL;
@@ -259,16 +260,16 @@ void vsub_free(Vsub *sub) {
     free(sub->aux.errbuf);
     sub->errvar = sub->errmsg = sub->aux.errbuf = NULL;
     // input text source
-    free(sub->aux.tsrc);
-    sub->aux.tsrc = NULL;
+    free(sub->tsrc);
+    sub->tsrc = NULL;
     // input vars sources
-    VsubVarsSrc *vsrc = sub->aux.vsrc;
+    VsubVarsSrc *vsrc = sub->vsrc;
     while (vsrc != NULL) {
         VsubVarsSrc *prev = vsrc->prev;
         free(vsrc);
         vsrc = prev;
     }
-    sub->aux.vsrc = NULL;
+    sub->vsrc = NULL;
     // parser context
     if (sub->aux.parser) {
         sub->aux.parser->destroy(sub->aux.pctx);

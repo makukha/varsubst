@@ -71,12 +71,12 @@ bool vsub_add_details(cJSON *root, const Vsub *sub) {
         ADD_KEY(metric, value, StringReference(sub->syntax->name));
         ADD_KEY(metric, hint, StringReference(sub->syntax->title));
     }}
-    {METRIC("tsrc", "input text source", sub->aux.tsrc) {
-        ADD_KEY(metric, value, StringReference(sub->aux.tsrc->name));
+    {METRIC("tsrc", "input text source", sub->tsrc) {
+        ADD_KEY(metric, value, StringReference(((VsubTextSrc*)(sub->tsrc))->name));
     }}
-    {METRIC("vsrc", "input vars sources", sub->aux.vsrc) {
+    {METRIC("vsrc", "input vars sources", sub->vsrc) {
         ADD_KEY(metric, value, Array())
-        for (VsubVarsSrc *vsrc = sub->aux.vsrc; vsrc != NULL; vsrc = vsrc->prev) {
+        for (VsubVarsSrc *vsrc = sub->vsrc; vsrc != NULL; vsrc = vsrc->prev) {
             ADD_ITEM(value, item, StringReference(vsrc->name))
         }
     }}
