@@ -51,6 +51,30 @@ int vsub_FindFormat(const char *name) {
 }
 
 
+// errors
+
+#define VSUB_ERR_FILE_READ -1  // match EOF
+#define VSUB_ERR_FILE_WRITE -2
+#define VSUB_ERR_FILE_OPEN -3
+#define VSUB_ERR_MEMORY -4
+#define VSUB_ERR_SYNTAX -5
+#define VSUB_ERR_VARIABLE -6
+#define VSUB_ERR_PARSER -7
+#define VSUB_ERR_UNKNOWN -8  // fallback
+
+const char *VSUB_ERRORS[] = {
+    "success",                  // 0 = VSUB_SUCCESS
+    "file read error",          // -1 = VSUB_ERR_FILE_READ
+    "file write error",         // -2 = VSUB_ERR_FILE_WRITE
+    "unable to open file",      // -3 = VSUB_ERR_FILE_OPEN
+    "memory error",             // -4 = VSUB_ERR_MEMORY
+    "invalid syntax",           // -5 = VSUB_ERR_SYNTAX
+    "variable error",           // -6 = VSUB_ERR_VARIABLE
+    "unexpected parser error",  // -7 = VSUB_ERR_PARSER
+    "unknown error",            // -8 = VSUB_ERR_UNKNOWN
+};
+
+
 // memory management
 
 static bool aux_request_resbuf(Auxil *aux, size_t sz) {
@@ -187,7 +211,7 @@ bool vsub_init(Vsub *sub) {
     sub->depth = 1;
     sub->maxinp = 0;
     sub->maxres = 0;
-	// sources
+    // sources
     sub->tsrc = NULL;
     sub->vsrc = NULL;
     // vsub result

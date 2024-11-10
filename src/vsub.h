@@ -50,7 +50,7 @@ typedef struct Vsub {
     bool trunc;     // whether result string was truncated because of maxinp or maxres
     size_t gcac;    // input bytes requested
     size_t gcbc;    // input bytes returned other than EOF
-    size_t inpc;    // parsed input length
+    size_t inpc;    // parsed input length; also serves as error location
     size_t resc;    // actual length of result str
     size_t subc;    // count of total substitutions made
     char iterc;     // count of subst iterations actually performed
@@ -94,11 +94,13 @@ extern const size_t VSUB_FORMAT_COUNT;
 
 #define VSUB_SUCCESS 0
 #define VSUB_ERR_FILE_READ -1  // match EOF
-#define VSUB_ERR_FILE_OPEN -2
-#define VSUB_ERR_MEMORY -3
-#define VSUB_ERR_SYNTAX -4
-#define VSUB_ERR_VARIABLE -5
-#define VSUB_ERR_PARSER -6
+#define VSUB_ERR_FILE_WRITE -2
+#define VSUB_ERR_FILE_OPEN -3
+#define VSUB_ERR_MEMORY -4
+#define VSUB_ERR_SYNTAX -5
+#define VSUB_ERR_VARIABLE -6
+#define VSUB_ERR_PARSER -7
+#define VSUB_ERR_UNKNOWN -8
 
 extern const char* VSUB_ERRORS[];  // using (- VSUB_ERR_*) above as indexes
 

@@ -6,7 +6,6 @@ project(
 )
 src = files(
     'src/detail.c',
-    'src/error.c',
     'src/main.c',
     'src/output/json.c',
     'src/output/plain.c',

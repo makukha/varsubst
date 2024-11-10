@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
                 result = false;
                 goto done;
             default:
-                printf_error("unexpected getopt character code: 0%o", o);
+                printf_error("unexpected getopt code: 0%o", o);  // non-reproducible guard
                 result = false;
                 goto done;
         }
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     // output
     int outfmt;
     if ((outfmt = vsub_FindFormat(use_format)) == -1) {
-        printf_error("unsupported output format: %s", use_format);
+        printf_error("unsupported output format: %s", use_format);  // non-reproducible guard
         result = false;
         goto done;
     }
@@ -212,27 +212,55 @@ int main(int argc, char *argv[]) {
             if (vsub_OutputPlain(&sub, stdout, result, use_color, use_detailed) == EOF) {
                 printf_error("failed to show results");  // todo: add granularity: file/memory error
                 result = false;
-                goto done;
+                goto processing_failed;
             }
             break;
         case VSUB_FMT_JSON:
             if (vsub_OutputJson(&sub, stdout, use_detailed) == EOF) {
                 printf_error("failed to show results");  // todo: add granularity: file/memory error
                 result = false;
-                goto done;
+                goto processing_failed;
             }
             break;
         default:
             printf_error("unsupported output format code: %d", outfmt);
             result = false;
-            goto done;
+            goto processing_failed;
     }
-//    vsub_print_error_sub(&sub, use_color); // todo: this should be closer to output
-//    vsub_print_error_str(err, use_color); // todo: this should be closer to output
+
+processing_failed:
+
+    // --- report processing error
+
+    switch (sub.err) {
+        case VSUB_SUCCESS:
+            break;  // no proccesing errors
+        case VSUB_ERR_MEMORY:
+            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            break;
+        case VSUB_ERR_SYNTAX:
+            printf_error("%s: position %ld", VSUB_ERRORS[-VSUB_ERR_MEMORY], sub.inpc);
+            break;
+        case VSUB_ERR_VARIABLE:
+            if (sub.errvar && sub.errmsg) {  // expected
+                printf_error("%s: %s %s", VSUB_ERRORS[-VSUB_ERR_VARIABLE], sub.errvar, sub.errmsg);
+            }
+            else {  // non-reproducible guard
+                printf_error(VSUB_ERRORS[-VSUB_ERR_VARIABLE]);
+            }
+            break;
+        case VSUB_ERR_PARSER:
+            printf_error("%s: position %ld", VSUB_ERRORS[-VSUB_ERR_PARSER], sub.inpc);
+            break;
+        default:
+            printf_error(VSUB_ERRORS[-VSUB_ERR_UNKNOWN]);  // non-reproducible guard
+            break;
+    }
+
+done:
 
     // --- finalize
 
-done:
     vsub_free(&sub);
     if (fp != stdin && fp != NULL) {
         fclose(fp);
