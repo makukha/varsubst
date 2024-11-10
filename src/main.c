@@ -209,14 +209,14 @@ int main(int argc, char *argv[]) {
 
     switch (outfmt) {
         case VSUB_FMT_PLAIN:
-            if (vsub_fputs_plain(&sub, stdout, result, use_color, use_detailed) == EOF) {
+            if (vsub_OutputPlain(&sub, stdout, result, use_color, use_detailed) == EOF) {
                 printf_error("failed to show results\n");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;
             }
             break;
         case VSUB_FMT_JSON:
-            if (vsub_fputs_json(&sub, stdout, use_detailed) == EOF) {
+            if (vsub_OutputJson(&sub, stdout, use_detailed) == EOF) {
                 printf_error("failed to show results\n");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;

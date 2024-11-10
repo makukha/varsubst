@@ -78,7 +78,7 @@ done:
 
 // output
 
-int vsub_fputs_plain(Vsub *sub, FILE *fp, bool success, bool use_color, bool detailed) {
+int vsub_OutputPlain(Vsub *sub, FILE *fp, bool success, bool use_color, bool detailed) {
     if (!sub->res) {
         return EOF;
     }

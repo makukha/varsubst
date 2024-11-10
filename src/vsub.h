@@ -83,8 +83,8 @@ VSUB_EXPORT bool vsub_UseVarsFromEnv(Vsub *sub);
 #define VSUB_FMT_JSON 1
 
 VSUB_EXPORT int vsub_FindFormat(const char *name);
-VSUB_EXPORT int vsub_fputs_plain(Vsub *sub, FILE *fp, bool result, bool use_color, bool detailed);
-VSUB_EXPORT int vsub_fputs_json(Vsub *sub, FILE *fp, bool detailed);
+VSUB_EXPORT int vsub_OutputPlain(Vsub *sub, FILE *fp, bool result, bool use_color, bool detailed);
+VSUB_EXPORT int vsub_OutputJson(Vsub *sub, FILE *fp, bool detailed);
 
 extern const char *VSUB_FORMAT[];  // using VSUB_FMT_* above as indexes
 extern const size_t VSUB_FORMAT_COUNT;

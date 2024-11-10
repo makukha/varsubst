@@ -5,7 +5,7 @@
 #include "../vsub.h"
 
 
-int vsub_fputs_json(Vsub *sub, FILE *fp, bool detailed) {
+int vsub_OutputJson(Vsub *sub, FILE *fp, bool detailed) {
     int ret = 0;
     cJSON *data = NULL;
     char *text = NULL;
