@@ -32,7 +32,7 @@ static void print_syntaxes() {
 }
 
 static void print_usage() {
-    puts("usage: vsub [options] [- | path]");
+    puts("usage: vsub [options] [path]");
     puts("  options:");
     puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
     puts("    -e, --env         use environment variables");
@@ -40,25 +40,29 @@ static void print_usage() {
     puts("    -f, --format=STR  set output format; default: 'plain'");
     puts("    -d, --detailed    add extended details");
     puts("    -b, --no-color    turn off color in --detailed mode");
-    puts("    -F, --formats     list supported output formats");
-    puts("    -S, --syntaxes    list supported syntaxes");
-    puts("    -V, --version     show tool name, version, and libvsub version");
+    puts("        --formats     list supported output formats");
+    puts("        --syntaxes    list supported syntaxes");
+    puts("        --version     show tool name, version, and libvsub version");
     puts("    -h, --help        show this help and exit");
 }
 
-static const char *shortopts = "-hVbdeEf:Fs:S";
+#define VSUB_LONGOPT_VERSION 1000
+#define VSUB_LONGOPT_FORMATS 1001
+#define VSUB_LONGOPT_SYNTAXES 1002
+
+static const char *shortopts = "-hbdeEf:s:";
 static struct option longopts[] = {
     {"detailed", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
     {"envsubst", no_argument, 0, 'E'},
     {"no-color", no_argument, 0, 'b'},
     {"format", required_argument, 0, 'f'},
-    {"formats", no_argument, 0, 'F'},
+    {"formats", no_argument, 0, VSUB_LONGOPT_FORMATS},
     {"syntax", required_argument, 0, 's'},
-    {"syntaxes", no_argument, 0, 'S'},
+    {"syntaxes", no_argument, 0, VSUB_LONGOPT_SYNTAXES},
     // standard
     {"help", no_argument, 0, 'h'},
-    {"version", no_argument, 0, 'V'},
+    {"version", no_argument, 0, VSUB_LONGOPT_VERSION},
 };
 
 int main(int argc, char *argv[]) {
@@ -88,7 +92,7 @@ int main(int argc, char *argv[]) {
             case 'h':
                 print_usage();
                 goto done;
-            case 'V':
+            case VSUB_LONGOPT_VERSION:
                 print_version();
                 goto done;
             // specific
@@ -108,10 +112,10 @@ int main(int argc, char *argv[]) {
             case 'f':
                 use_format = optarg;
                 break;
-            case 'F':
+            case VSUB_LONGOPT_FORMATS:
                 print_formats();
                 goto done;
-            case 'S':
+            case VSUB_LONGOPT_SYNTAXES:
                 print_syntaxes();
                 goto done;
             case 's':
