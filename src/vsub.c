@@ -54,14 +54,13 @@ int vsub_format_lookup(const char *name) {
 // memory management
 
 static bool aux_request_resbuf(Auxil *aux, size_t sz) {
-    Vsub *sub = aux->sub;
     if (sz <= aux->resz) {
         return true;
     }
     size_t newsz = sz + VSUB_BRES_INC;
     char *newbuf = realloc(aux->resbuf, sz);
     if (!newbuf) {
-        sub->err = VSUB_ERROR_MEMORY;
+        aux->sub->err = VSUB_ERROR_MEMORY;
         return false;
     }
     aux->resbuf = newbuf;
@@ -70,13 +69,12 @@ static bool aux_request_resbuf(Auxil *aux, size_t sz) {
 }
 
 static bool aux_request_errbuf(Auxil *aux, size_t sz) {
-    Vsub *sub = aux->sub;
     if (sz <= aux->errz) {
         return true;
     }
     char *newbuf = realloc(aux->errbuf, sz);
     if (!newbuf) {
-        sub->err = VSUB_ERROR_MEMORY;
+        aux->sub->err = VSUB_ERROR_MEMORY;
         return false;
     }
     aux->errbuf = newbuf;
@@ -88,23 +86,22 @@ static bool aux_request_errbuf(Auxil *aux, size_t sz) {
 // aux syntax api
 
 static int aux_getchar(Auxil *aux) {
-    Vsub *sub = aux->sub;
-    sub->gcac++;
-    if (sub->maxinp == 0 || sub->gcac < sub->maxinp) {
-        int c = ((VsubTextSrc*)(sub->tsrc))->getchar(sub->tsrc);
+    aux->sub->gcac++;
+    if (aux->sub->maxinp == 0 || aux->sub->gcac < aux->sub->maxinp) {
+        int c = ((VsubTextSrc*)(aux->sub->tsrc))->getchar(aux->sub->tsrc);
         if (c >= 0) {
-            sub->gcbc++;
+            aux->sub->gcbc++;
         }
         return c;
     }
     else {
-        sub->trunc = true;
+        aux->sub->trunc = true;
         return -1;
     }
 }
 
 static const char *aux_getvalue(Auxil *aux, const char *var) {
-    VsubVarsSrc *vsrc = ((Vsub*)(aux->sub))->vsrc;
+    VsubVarsSrc *vsrc = aux->sub->vsrc;
     while (vsrc) {
         const char *value = vsrc->getvalue(vsrc, var);
         if (value) {
@@ -117,7 +114,7 @@ static const char *aux_getvalue(Auxil *aux, const char *var) {
     return NULL;
 }
 
-static bool vsub_append(Vsub *sub, int epos, char *str) {
+static bool aux_append(Vsub *sub, int epos, char *str) {
     sub->res = ((Auxil*)(sub->aux))->resbuf;  // make non-NULL on first append
     sub->inpc = epos;
     size_t current = sub->resc;
@@ -143,27 +140,26 @@ static bool vsub_append(Vsub *sub, int epos, char *str) {
 }
 
 static bool aux_append_orig(Auxil *aux, int epos, char *str) {
-    return vsub_append(aux->sub, epos, str);
+    return aux_append(aux->sub, epos, str);
 }
 
 static bool aux_append_subst(Auxil *aux, int epos, char *str) {
-    if (!vsub_append(aux->sub, epos, str)) {
+    if (!aux_append(aux->sub, epos, str)) {
         return false;
     }
-    ((Vsub *)(aux->sub))->subc++;
+    aux->sub->subc++;
     return true;
 }
 
 static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
-    Vsub *sub = aux->sub;
-    sub->errvar = aux->errbuf;  // make non-NULL when error is set
-    sub->inpc = epos;
+    aux->sub->errvar = aux->errbuf;  // make non-NULL when error is set
+    aux->sub->inpc = epos;
     if (!aux_request_errbuf(aux, strlen(var) + strlen(msg) + 2)) {
         return false;
     }
-    sub->err = VSUB_ERROR_VARIABLE;
-    sub->errmsg = stpcpy(sub->errvar, var) + 1;  // skip term zero
-    strcpy(sub->errmsg, msg);
+    aux->sub->err = VSUB_ERROR_VARIABLE;
+    aux->sub->errmsg = stpcpy(aux->sub->errvar, var) + 1;  // skip term zero
+    strcpy(aux->sub->errmsg, msg);
     return true;
 }
 

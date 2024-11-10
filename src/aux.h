@@ -21,7 +21,7 @@ extern const VsubParser VSUB_PARSERS[];  // using VSUB_SX_* as indexes
 // --- auxiliary object
 
 typedef struct Auxil {
-    void *sub;  // todo: can safely type now
+    Vsub *sub;
     // syntax methods
     int (*getchar)(void *aux);
     const char *(*getvalue)(void *aux, const char *var);
