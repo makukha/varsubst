@@ -3,10 +3,12 @@
 
 #include <cjson/cJSON.h>
 #include "vsub.h"
+#include "vsub_io.h"
 
 
 static bool vsub_add_result(cJSON *root, const Vsub *vsub);
 static bool vsub_add_details(cJSON *root, const Vsub *vsub);
+
 
 cJSON *vsub_results(const Vsub *sub, bool include_details) {
     if (!sub) {

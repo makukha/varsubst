@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../vsub.h"
+#include "../vsub_io.h"
 
 
 static const char *NAME = "arglist";

@@ -30,20 +30,6 @@ extern const VsubParser VSUB_PARSERS[];  // using VSUB_SX_* as indexes
 #define VSUB_PARSERS_COUNT VSUB_SYNTAXES_COUNT
 
 
-// --- input sources -- PART 1
-
-typedef struct VsubTextSrc {
-    const char *name;
-    int (*getchar)(void *src);
-} VsubTextSrc;
-
-typedef struct VsubVarsSrc {
-    const char *name;
-    const char *(*getvalue)(void *src, const char *var);
-    void *prev;
-} VsubVarsSrc;
-
-
 // --- auxiliary object
 
 typedef struct Auxil {
@@ -121,11 +107,7 @@ VSUB_EXPORT cJSON *vsub_results(const Vsub *sub, bool include_details);
 VSUB_EXPORT void vsub_free(Vsub *sub);
 
 
-// --- input sources -- PART 2
-
-// input helpers
-void vsub_set_tsrc(Vsub *sub, VsubTextSrc *src);
-void vsub_add_vsrc(Vsub *sub, VsubVarsSrc *src);
+// --- input sources
 
 VSUB_EXPORT bool vsub_use_text_from_file(Vsub *sub, FILE *fp);
 VSUB_EXPORT bool vsub_use_text_from_str(Vsub *sub, const char *s);

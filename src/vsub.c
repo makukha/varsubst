@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vsub.h"
+#include "vsub_io.h"
 #include "syntax/default/parser.h"
 
 
@@ -80,21 +81,6 @@ static bool aux_request_errbuf(Auxil *aux, size_t sz) {
     aux->errbuf = newbuf;
     aux->errz = sz;
     return true;
-}
-
-
-// input sources management
-
-void vsub_set_tsrc(Vsub *sub, VsubTextSrc *src) {
-    if (sub->tsrc) {
-        free(sub->tsrc);
-    }
-    sub->tsrc = src;
-}
-
-void vsub_add_vsrc(Vsub *sub, VsubVarsSrc *src) {
-    src->prev = sub->vsrc;
-    sub->vsrc = src;
 }
 
 

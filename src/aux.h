@@ -4,7 +4,7 @@
 #include "vsub.h"
 
 
-// --- packcc configuration
+// --- parser generator configuration
 
 // parser generator settings
 #define PCC_ERROR(auxil) { ((Vsub*)auxil->sub)->err = VSUB_ERROR_SYNTAX; return 0; }
