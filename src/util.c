@@ -23,21 +23,3 @@ end:
     fclose(mp);
     return ret;
 }
-
-int fprintfcerr(FILE *fp, bool use_color, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    int ret;
-
-    if ((ret = fputs(use_color ? VSUB_COLOR_ERROR : "", fp) == EOF)) {
-        goto done;
-    };
-    if ((ret = vfprintf(fp, format, args)) == EOF) {
-        goto done;
-    }
-    if ((ret = fputs(use_color ? "\033[0m" : "", fp)) == EOF) {
-        goto done;
-    }
-done:
-    return ret;
-}

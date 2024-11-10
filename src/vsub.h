@@ -14,24 +14,23 @@
 #include <stdio.h>
 
 #include <cjson/cJSON.h>
-#include "vsub_aux.h"
+
+#include "aux.h"  // todo: this reference must be removed
 
 
-// --- Internals ---
+// --- input sources -- PART 1
 
-// input base
 typedef struct VsubTextSrc {
     const char *name;
     int (*getchar)(void *src);
 } VsubTextSrc;
+
 typedef struct VsubVarsSrc {
     const char *name;
     const char *(*getvalue)(void *src, const char *var);
     void *prev;
 } VsubVarsSrc;
 
-
-// --- API ---
 
 // --- auxiliary object
 
@@ -83,7 +82,8 @@ extern const size_t VSUB_SYNTAXES_COUNT;
 VSUB_EXPORT const VsubSyntax *vsub_syntax_lookup(const char *name);  // find by name
 
 
-// results and params
+// --- substitution context
+
 typedef struct Vsub {
     // params
     const VsubSyntax *syntax;  // syntax dialect, one of VSUB_SX_*; 0 by default
@@ -111,37 +111,45 @@ VSUB_EXPORT bool vsub_alloc(Vsub *sub);
 VSUB_EXPORT bool vsub_run(Vsub *sub);
 VSUB_EXPORT cJSON *vsub_results(const Vsub *sub, bool include_details);
 VSUB_EXPORT void vsub_free(Vsub *sub);
-// input text
+
+
+// --- input sources -- PART 2
+
 VSUB_EXPORT bool vsub_use_text_from_file(Vsub *sub, FILE *fp);
 VSUB_EXPORT bool vsub_use_text_from_str(Vsub *sub, const char *s);
-// input vars
+
 VSUB_EXPORT bool vsub_add_vars_from_arglist(Vsub *sub, int c, const char *kv[]);
 VSUB_EXPORT bool vsub_add_vars_from_arrays(Vsub *sub, int c, const char *k[], const char *v[]);
 VSUB_EXPORT bool vsub_add_vars_from_env(Vsub *sub);
 
-// output formats
+
+// --- output formats
+
 #define VSUB_FMT_PLAIN 0
 #define VSUB_FMT_JSON 1
-extern const char *VSUB_FORMAT[];  // using VSUB_FMT_* above as indexes
-extern const size_t VSUB_FORMAT_COUNT;
+
 VSUB_EXPORT int vsub_format_lookup(const char *name);
 VSUB_EXPORT int vsub_fputs_plain(Vsub *sub, FILE *fp, bool result, bool use_color, bool detailed);
 VSUB_EXPORT int vsub_fputs_json(Vsub *sub, FILE *fp, bool detailed);
 
-// errors
+extern const char *VSUB_FORMAT[];  // using VSUB_FMT_* above as indexes
+extern const size_t VSUB_FORMAT_COUNT;
+
+
+// --- error handling
+
 #define VSUB_SUCCESS 0
-#define VSUB_INVALID_SYNTAX 1
-#define VSUB_VAR_ERROR 2
-#define VSUB_PARSER_ERROR 3
-#define VSUB_MEMORY_ERROR 4
+#define VSUB_ERROR_SYNTAX 1
+#define VSUB_ERROR_VARIABLE 2
+#define VSUB_ERROR_PARSER 3
+#define VSUB_ERROR_MEMORY 4
+
 typedef struct VsubError {
     char id;
-    const char *title;
+    const char *name;
 } VsubError;
+
 extern const VsubError VSUB_ERRORS[];  // using VSUB_* above as indexes
-// error handling
-#define VSUB_COLOR_ERROR "\033[31;1m"
-VSUB_EXPORT void vsub_print_error_str(const char *str, bool use_color);
-VSUB_EXPORT void vsub_print_error_sub(const Vsub *sub, bool use_color);
+
 
 #endif  // VSUB_H

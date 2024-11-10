@@ -6,7 +6,7 @@
 
 
 // parser generator settings
-#define PCC_ERROR(auxil) { ((Vsub*)auxil->sub)->err = VSUB_INVALID_SYNTAX; return 0; }
+#define PCC_ERROR(auxil) { ((Vsub*)auxil->sub)->err = VSUB_ERROR_SYNTAX; return 0; }
 #define PCC_GETCHAR(auxil) auxil->getchar(auxil)
 
 // actions

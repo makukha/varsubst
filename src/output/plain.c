@@ -11,7 +11,7 @@
 
 #define ST_TITLE "\033[30;1;106m"  // title
 #define ST_SUCCESS "\033[92;1m"    // success
-#define ST_ERROR VSUB_COLOR_ERROR  // error
+#define ST_ERROR "\033[31;1m"      // error
 #define ST_NAME "\033[36m"         // metric name
 #define ST_DESC "\033[2m"          // metric description
 #define ST_VALUE "\033[1m"         // metric value
@@ -48,6 +48,32 @@
     fprintf(fp, fmt, __VA_ARGS__);\
     fputs(C(R), fp);\
 }
+
+
+
+// todo: this function is not that useful
+#include <stdarg.h>
+
+int fprintfcerr(FILE *fp, bool use_color, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int ret;
+
+    if ((ret = fputs(use_color ? ST_ERROR : "", fp) == EOF)) {
+        goto done;
+    };
+    if ((ret = vfprintf(fp, format, args)) == EOF) {
+        goto done;
+    }
+    if ((ret = fputs(use_color ? "\033[0m" : "", fp)) == EOF) {
+        goto done;
+    }
+done:
+    return ret;
+}
+
+
+
 
 
 // output

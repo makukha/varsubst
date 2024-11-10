@@ -59,7 +59,7 @@ static bool aux_request_resbuf(Auxil *aux, size_t sz) {
     size_t newsz = sz + VSUB_BRES_INC;
     char *newbuf = realloc(aux->resbuf, sz);
     if (!newbuf) {
-        sub->err = VSUB_MEMORY_ERROR;
+        sub->err = VSUB_ERROR_MEMORY;
         return false;
     }
     aux->resbuf = newbuf;
@@ -74,7 +74,7 @@ static bool aux_request_errbuf(Auxil *aux, size_t sz) {
     }
     char *newbuf = realloc(aux->errbuf, sz);
     if (!newbuf) {
-        sub->err = VSUB_MEMORY_ERROR;
+        sub->err = VSUB_ERROR_MEMORY;
         return false;
     }
     aux->errbuf = newbuf;
@@ -174,7 +174,7 @@ static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
     if (!aux_request_errbuf(aux, strlen(var) + strlen(msg) + 2)) {
         return false;
     }
-    sub->err = VSUB_VAR_ERROR;
+    sub->err = VSUB_ERROR_VARIABLE;
     sub->errmsg = stpcpy(sub->errvar, var) + 1;  // skip term zero
     strcpy(sub->errmsg, msg);
     return true;
@@ -230,13 +230,13 @@ bool vsub_alloc(Vsub *sub) {
     // result and error buffers
     if (!sub->aux.resbuf) {
         if (!(sub->aux.resbuf = malloc(sub->aux.resz))) {
-            sub->err = VSUB_MEMORY_ERROR;
+            sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
     }
     if (!sub->aux.errbuf) {
         if (!(sub->aux.errbuf = malloc(sub->aux.errz))) {
-            sub->err = VSUB_MEMORY_ERROR;
+            sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
     }
@@ -244,7 +244,7 @@ bool vsub_alloc(Vsub *sub) {
     sub->aux.parser = &VSUB_PARSERS[sub->syntax->id];
     if (!sub->aux.pctx) {
         if (!(sub->aux.pctx = sub->aux.parser->create(&(sub->aux)))) {
-            sub->err = VSUB_MEMORY_ERROR;
+            sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
     }
@@ -289,7 +289,7 @@ bool vsub_run(Vsub *sub) {
     int resc = sub->resc;
     ret = sub->aux.parser->parse(sub->aux.pctx, NULL);  // second pass
     if (ret > 0 || resc < sub->resc || sub->err != VSUB_SUCCESS) {
-        sub->err = VSUB_PARSER_ERROR;
+        sub->err = VSUB_ERROR_PARSER;
         return false;
     }
     return true;

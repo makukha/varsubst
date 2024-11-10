@@ -7,7 +7,6 @@
 
 
 char *asprintf(const char *format, ...);
-int fprintfcerr(FILE *fp, bool use_color, const char *format, ...);
 
 
 #endif  // VSUB_SYNTAX_H
