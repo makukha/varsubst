@@ -16,46 +16,6 @@
 #include <cjson/cJSON.h>
 
 
-// --- parsers
-
-// implemented syntax parser description
-typedef struct VsubParser {
-    void *(*create)(void *aux);
-    int (*parse)(void *ctx, void *ret);
-    void (*destroy)(void *ctx);
-} VsubParser;
-
-// array of implemented syntax parser descriptions
-extern const VsubParser VSUB_PARSERS[];  // using VSUB_SX_* as indexes
-#define VSUB_PARSERS_COUNT VSUB_SYNTAXES_COUNT
-
-
-// --- auxiliary object
-
-typedef struct Auxil {
-    void *sub;
-    // syntax methods
-    int (*getchar)(void *aux);
-    const char *(*getvalue)(void *aux, const char *var);
-    bool (*append_orig)(void *aux, int epos, const char *str);
-    bool (*append_subst)(void *aux, int epos, const char *str);
-    bool (*append_error)(void *aux, int epos, const char *errvar, const char* errmsg);
-    // data
-    char *resbuf;  // result buffer
-    size_t resz;   // result buffer size
-    char *errbuf;  // error buffer
-    size_t errz;   // error buffer size
-    // parser
-    const VsubParser *parser;
-    void *pctx;
-} Auxil;
-
-// buffer management constants
-#define VSUB_BRES_MIN 256  // initial result buffer size
-#define VSUB_BRES_INC 1024 // additional free space reserved on every reallocation
-#define VSUB_BERR_MIN 256  // initial error buffer size
-
-
 // --- syntaxes
 
 #define VSUB_SX_DEFAULT 0
@@ -78,7 +38,7 @@ VSUB_EXPORT const VsubSyntax *vsub_syntax_lookup(const char *name);  // find by 
 
 typedef struct Vsub {
     // params
-    const VsubSyntax *syntax;  // syntax dialect, one of VSUB_SX_*; 0 by default
+    const VsubSyntax *syntax;  // one of VSUB_SX_*; 0 by default
     char depth;     // max subst iter count; default: 1
     size_t maxinp;  // max length of input string; unlim if set to 0
     size_t maxres;  // max length of result string; unlim if set to 0
@@ -97,10 +57,10 @@ typedef struct Vsub {
     // internal data
     void *tsrc;
     void *vsrc;
-    Auxil aux;
+    void *aux;
 } Vsub;
 
-VSUB_EXPORT void vsub_init(Vsub *sub);
+VSUB_EXPORT bool vsub_init(Vsub *sub);
 VSUB_EXPORT bool vsub_alloc(Vsub *sub);
 VSUB_EXPORT bool vsub_run(Vsub *sub);
 VSUB_EXPORT cJSON *vsub_results(const Vsub *sub, bool include_details);

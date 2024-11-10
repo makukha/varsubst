@@ -12,7 +12,7 @@ src = files(
     'src/output/plain.c',
     'src/util.c',
     'src/vsub.c',
-    'src/vsub_io.c',
+    'src/vsubio.c',
     'src/input/text_file.c',
     'src/input/text_str.c',
     'src/input/vars_arglist.c',

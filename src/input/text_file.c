@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../vsub_io.h"
+#include "../vsubio.h"
 
 
 static const char *NAME = "file";

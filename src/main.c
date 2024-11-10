@@ -82,8 +82,9 @@ int main(int argc, char *argv[]) {
     int pathind = 0;
     // parser
     Vsub sub;
-    vsub_init(&sub);
     FILE *fp = stdin;
+
+    // --- parse options
 
     opterr = 0;
     int o;
@@ -143,6 +144,17 @@ int main(int argc, char *argv[]) {
                 goto done;
         }
     }
+
+    // --- initialize context
+
+    if (!vsub_init(&sub)) {
+        printf_error("out of memory\n");
+        result = false;
+        goto done;
+    }
+
+    // --- set context parameters
+
     // syntax
     if ((sub.syntax = vsub_syntax_lookup(use_syntax)) == NULL) {
         printf_error("unsupported syntax %s\n", use_syntax);
@@ -150,10 +162,7 @@ int main(int argc, char *argv[]) {
         goto done;
     }
     // input
-    if (!path) {
-        fp = stdin;
-    }
-    else {
+    if (path) {
         if (!(fp = fopen(path, "r"))) {
             printf_error("failed to open file %s\n", path);
             result = false;
@@ -180,10 +189,13 @@ int main(int argc, char *argv[]) {
         result = false;
         goto done;
     }
-    // color
+
+    // --- set other options
+
     use_color = (use_detailed && !no_color) ? true : false;
 
-    // run
+    // --- process
+
     if (!vsub_alloc(&sub)) {
         result = false;
         goto done;
@@ -193,7 +205,8 @@ int main(int argc, char *argv[]) {
         goto done;
     }
 
-    // print result
+    // --- output result
+
     switch (outfmt) {
         case VSUB_FMT_PLAIN:
             if (vsub_fputs_plain(&sub, stdout, result, use_color, use_detailed) == EOF) {
@@ -216,6 +229,8 @@ int main(int argc, char *argv[]) {
     }
 //    vsub_print_error_sub(&sub, use_color); // todo: this should be closer to output
 //    vsub_print_error_str(err, use_color); // todo: this should be closer to output
+
+    // --- finalize
 
 done:
     vsub_free(&sub);

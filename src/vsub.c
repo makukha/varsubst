@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+#include "aux.h"
 #include "vsub.h"
-#include "vsub_io.h"
+#include "vsubio.h"
 #include "syntax/default/parser.h"
 
 
@@ -117,7 +118,7 @@ static const char *aux_getvalue(Auxil *aux, const char *var) {
 }
 
 static bool vsub_append(Vsub *sub, int epos, char *str) {
-    sub->res = sub->aux.resbuf;  // make non-NULL on first append
+    sub->res = ((Auxil*)(sub->aux))->resbuf;  // make non-NULL on first append
     sub->inpc = epos;
     size_t current = sub->resc;
     size_t required = sub->resc + strlen(str);
@@ -132,7 +133,7 @@ static bool vsub_append(Vsub *sub, int epos, char *str) {
     if (delta <= 0) {
         return false;
     }
-    if (!aux_request_resbuf(&(sub->aux), allowed + 1)) {
+    if (!aux_request_resbuf(sub->aux, allowed + 1)) {
         return false;
     }
     char *end = stpncpy(sub->res + current, str, delta);
@@ -169,7 +170,7 @@ static bool aux_append_error(Auxil *aux, int epos, char *var, char *msg) {
 
 // vsub management
 
-static void vsub_prepare_to_run(Vsub *sub) {
+static void vsub_clear_results(Vsub *sub) {
     sub->res = NULL;
     sub->err = VSUB_SUCCESS;
     sub->errvar = NULL;
@@ -183,54 +184,62 @@ static void vsub_prepare_to_run(Vsub *sub) {
     sub->iterc = 0;
 }
 
-void vsub_init(Vsub *sub) {
+bool vsub_init(Vsub *sub) {
     // vsub params
     sub->syntax = &VSUB_SYNTAXES[VSUB_SX_DEFAULT];
     sub->depth = 1;
     sub->maxinp = 0;
     sub->maxres = 0;
-    // vsub result
-    vsub_prepare_to_run(sub);
-
 	// sources
     sub->tsrc = NULL;
     sub->vsrc = NULL;
+    // vsub result
+    vsub_clear_results(sub);
+
     // aux
-    sub->aux.sub = sub;
+    Auxil *aux = malloc(sizeof(Auxil));
+    if (!aux) {
+        return false;
+    }
+    aux->sub = sub;
+    sub->aux = aux;
     // aux syntax methods
-    sub->aux.getchar = (int (*)(void *))aux_getchar;
-    sub->aux.getvalue = (const char *(*)(void *, const char *))aux_getvalue;
-    sub->aux.append_orig = (bool (*)(void *, int, const char *))aux_append_orig;
-    sub->aux.append_subst = (bool (*)(void *, int, const char *))aux_append_subst;
-    sub->aux.append_error = (bool (*)(void *, int, const char *, const char *))aux_append_error;
+    aux->getchar = (int (*)(void *))aux_getchar;
+    aux->getvalue = (const char *(*)(void *, const char *))aux_getvalue;
+    aux->append_orig = (bool (*)(void *, int, const char *))aux_append_orig;
+    aux->append_subst = (bool (*)(void *, int, const char *))aux_append_subst;
+    aux->append_error = (bool (*)(void *, int, const char *, const char *))aux_append_error;
     // data
-    sub->aux.resbuf = NULL;
-    sub->aux.resz = VSUB_BRES_MIN;
-    sub->aux.errbuf = NULL;
-    sub->aux.errz = VSUB_BERR_MIN;
+    aux->resbuf = NULL;
+    aux->resz = VSUB_BRES_MIN;
+    aux->errbuf = NULL;
+    aux->errz = VSUB_BERR_MIN;
     // parser
-    sub->aux.parser = NULL;
-    sub->aux.pctx = NULL;
+    aux->parser = NULL;
+    aux->pctx = NULL;
+
+    return true;
 }
 
 bool vsub_alloc(Vsub *sub) {
     // result and error buffers
-    if (!sub->aux.resbuf) {
-        if (!(sub->aux.resbuf = malloc(sub->aux.resz))) {
+    Auxil *aux = sub->aux;
+    if (!aux->resbuf) {
+        if (!(aux->resbuf = malloc(aux->resz))) {
             sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
     }
-    if (!sub->aux.errbuf) {
-        if (!(sub->aux.errbuf = malloc(sub->aux.errz))) {
+    if (!aux->errbuf) {
+        if (!(aux->errbuf = malloc(aux->errz))) {
             sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
     }
     // parser
-    sub->aux.parser = &VSUB_PARSERS[sub->syntax->id];
-    if (!sub->aux.pctx) {
-        if (!(sub->aux.pctx = sub->aux.parser->create(&(sub->aux)))) {
+    aux->parser = &VSUB_PARSERS[sub->syntax->id];
+    if (!aux->pctx) {
+        if (!(aux->pctx = aux->parser->create(aux))) {
             sub->err = VSUB_ERROR_MEMORY;
             return false;
         }
@@ -239,12 +248,20 @@ bool vsub_alloc(Vsub *sub) {
 }
 
 void vsub_free(Vsub *sub) {
-    // result buffer
-    free(sub->aux.resbuf);
-    sub->res = sub->aux.resbuf = NULL;
-    // result error buffer
-    free(sub->aux.errbuf);
-    sub->errvar = sub->errmsg = sub->aux.errbuf = NULL;
+    Auxil *aux = sub->aux;
+    if (aux) {
+        // parser context
+        if (aux->parser) {
+            aux->parser->destroy(aux->pctx);
+        }
+        // aux
+        free(aux->resbuf);
+        sub->res = NULL;
+        free(aux->errbuf);
+        sub->errvar = sub->errmsg = NULL;
+        free(aux);
+        sub->aux = NULL;
+    }
     // input text source
     free(sub->tsrc);
     sub->tsrc = NULL;
@@ -256,16 +273,13 @@ void vsub_free(Vsub *sub) {
         vsrc = prev;
     }
     sub->vsrc = NULL;
-    // parser context
-    if (sub->aux.parser) {
-        sub->aux.parser->destroy(sub->aux.pctx);
-    }
 }
 
 bool vsub_run(Vsub *sub) {
-    vsub_prepare_to_run(sub);
+    Auxil *aux = sub->aux;
+    vsub_clear_results(sub);
     // first pass
-    int ret = sub->aux.parser->parse(sub->aux.pctx, NULL);
+    int ret = aux->parser->parse(aux->pctx, NULL);
     if (sub->err != VSUB_SUCCESS) {  // failed
         return false;
     }
@@ -274,7 +288,7 @@ bool vsub_run(Vsub *sub) {
     }
     // second pass
     int resc = sub->resc;
-    ret = sub->aux.parser->parse(sub->aux.pctx, NULL);  // second pass
+    ret = aux->parser->parse(aux->pctx, NULL);  // second pass
     if (ret > 0 || resc < sub->resc || sub->err != VSUB_SUCCESS) {
         sub->err = VSUB_ERROR_PARSER;
         return false;

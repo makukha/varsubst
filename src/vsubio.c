@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "vsub_io.h"
+#include "vsubio.h"
 
 
 void vsub_SetTextSrc(Vsub *sub, VsubTextSrc *src) {
