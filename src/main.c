@@ -18,14 +18,15 @@ static void print_formats() {
 
 static void print_syntaxes() {
     // measure name column width
-    int shortlen = 0;
+    int namew = 0;
     for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
-        int len = strlen(VSUB_SYNTAX[i].name);
-        shortlen = (len > shortlen) ? len : shortlen;
+        int w = strlen(VSUB_SYNTAX[i].name);
+        namew = (w > namew) ? w : namew;
     }
     // print
-    char fmt[24];
-    sprintf(fmt, "%%-%ds  %%s\n", shortlen);
+    char *fmttpl = "%%-%ds  %%s\n";
+    char fmt[sizeof(fmttpl) + 11];  // 10 bytes for %d and 1 byte for '\0'
+    snprintf(fmt, sizeof(fmt), fmttpl, namew);
     for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
         printf(fmt, VSUB_SYNTAX[i].name, VSUB_SYNTAX[i].title);
     }
@@ -46,9 +47,9 @@ static void print_usage() {
     puts("    -h, --help        show this help and exit");
 }
 
-#define VSUB_LONGOPT_VERSION 1000
-#define VSUB_LONGOPT_FORMATS 1001
-#define VSUB_LONGOPT_SYNTAXES 1002
+#define VSUB_OPT_VERSION 1000
+#define VSUB_OPT_FORMATS 1001
+#define VSUB_OPT_SYNTAXES 1002
 
 static const char *shortopts = "-hbdeEf:s:";
 static struct option longopts[] = {
@@ -57,19 +58,17 @@ static struct option longopts[] = {
     {"envsubst", no_argument, 0, 'E'},
     {"no-color", no_argument, 0, 'b'},
     {"format", required_argument, 0, 'f'},
-    {"formats", no_argument, 0, VSUB_LONGOPT_FORMATS},
+    {"formats", no_argument, 0, VSUB_OPT_FORMATS},
     {"syntax", required_argument, 0, 's'},
-    {"syntaxes", no_argument, 0, VSUB_LONGOPT_SYNTAXES},
+    {"syntaxes", no_argument, 0, VSUB_OPT_SYNTAXES},
     // standard
     {"help", no_argument, 0, 'h'},
-    {"version", no_argument, 0, VSUB_LONGOPT_VERSION},
+    {"version", no_argument, 0, VSUB_OPT_VERSION},
 };
 
 int main(int argc, char *argv[]) {
     // control flow
     bool result = true;
-    char err[128] = "";
-    size_t errsz = sizeof(err);
     // options
     bool use_color = false;  // unless --detailed and not --no-color
     bool no_color = false;   // --no-color default
@@ -92,7 +91,7 @@ int main(int argc, char *argv[]) {
             case 'h':
                 print_usage();
                 goto done;
-            case VSUB_LONGOPT_VERSION:
+            case VSUB_OPT_VERSION:
                 print_version();
                 goto done;
             // specific
@@ -112,10 +111,10 @@ int main(int argc, char *argv[]) {
             case 'f':
                 use_format = optarg;
                 break;
-            case VSUB_LONGOPT_FORMATS:
+            case VSUB_OPT_FORMATS:
                 print_formats();
                 goto done;
-            case VSUB_LONGOPT_SYNTAXES:
+            case VSUB_OPT_SYNTAXES:
                 print_syntaxes();
                 goto done;
             case 's':
