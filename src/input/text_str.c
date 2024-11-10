@@ -19,7 +19,7 @@ static int _getchar(VsubTextStr *src) {
     return (int)src->str[src->i++];
 }
 
-bool vsub_use_text_from_str(Vsub *sub, const char *s) {
+bool vsub_UseTextFromStr(Vsub *sub, const char *s) {
     VsubTextStr *src = malloc(sizeof(VsubTextStr));
     if (!src) {
         return false;

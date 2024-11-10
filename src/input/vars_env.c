@@ -12,7 +12,7 @@ static const char *_getvalue(VsubVarsEnv *src, const char *var) {
     return getenv(var);
 }
 
-bool vsub_add_vars_from_env(Vsub *sub) {
+bool vsub_UseVarsFromEnv(Vsub *sub) {
     VsubVarsEnv *src = malloc(sizeof(VsubVarsEnv));
     if (!src) {
         return false;

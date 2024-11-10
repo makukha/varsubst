@@ -23,7 +23,7 @@ static int _getchar(VsubTextFile *src) {
     return (int)c;
 }
 
-bool vsub_use_text_from_file(Vsub *sub, FILE *fp) {
+bool vsub_UseTextFromFile(Vsub *sub, FILE *fp) {
     VsubTextFile *src = malloc(sizeof(VsubTextFile));
     if (!src) {
         return false;

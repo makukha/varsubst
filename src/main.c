@@ -160,14 +160,14 @@ int main(int argc, char *argv[]) {
             goto done;
         }
     }
-    if (!vsub_use_text_from_file(&sub, fp)) {
+    if (!vsub_UseTextFromFile(&sub, fp)) {
         printf_error("out of memory\n");
         result = false;
         goto done;
     }
     // vars
     if (use_env) {
-        if (!vsub_add_vars_from_env(&sub)) {
+        if (!vsub_UseVarsFromEnv(&sub)) {
             printf_error("out of memory\n");
             result = false;
             goto done;
