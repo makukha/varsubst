@@ -32,6 +32,6 @@ bool vsub_UseTextFromFile(Vsub *sub, FILE *fp) {
     ((VsubTextSrc *)src)->getchar = (int (*)(void *))_getchar;
     src->fp = fp;
     src->eof = false;
-    vsub_set_tsrc(sub, (VsubTextSrc *)src);
+    vsub_SetTextSrc(sub, (VsubTextSrc *)src);
     return true;
 }

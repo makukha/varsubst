@@ -16,8 +16,8 @@ typedef struct VsubVarsSrc {
 } VsubVarsSrc;
 
 // input helpers
-void vsub_set_tsrc(Vsub *sub, VsubTextSrc *src);
-void vsub_add_vsrc(Vsub *sub, VsubVarsSrc *src);
+void vsub_SetTextSrc(Vsub *sub, VsubTextSrc *src);
+void vsub_AddVarsSrc(Vsub *sub, VsubVarsSrc *src);
 
 
 #endif  // VSUB_IO_H

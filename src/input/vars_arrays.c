@@ -31,6 +31,6 @@ bool vsub_UseVarsFromArrays(Vsub *sub, int c, const char *k[], const char *v[]) 
     src->keys = k;
     src->vals = v;
     src->count = c;
-    vsub_add_vsrc(sub, (VsubVarsSrc *)src);
+    vsub_AddVarsSrc(sub, (VsubVarsSrc *)src);
     return true;
 }

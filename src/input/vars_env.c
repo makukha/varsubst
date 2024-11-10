@@ -19,6 +19,6 @@ bool vsub_UseVarsFromEnv(Vsub *sub) {
     }
     ((VsubVarsSrc *)src)->name = NAME;
     ((VsubVarsSrc *)src)->getvalue = (const char *(*)(void *, const char *))_getvalue;
-    vsub_add_vsrc(sub, (VsubVarsSrc *)src);
+    vsub_AddVarsSrc(sub, (VsubVarsSrc *)src);
     return true;
 }
