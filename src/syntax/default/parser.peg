@@ -2,7 +2,7 @@
 %auxil "Auxil *"
 %value "const char *"
 %common {
-#include "../../syntax.h"
+#include "../../aux.h"
 }
 
 input <- atom* !.

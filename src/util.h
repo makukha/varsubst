@@ -9,4 +9,4 @@
 char *asprintf(const char *format, ...);
 
 
-#endif  // VSUB_SYNTAX_H
+#endif  // VSUB_UTIL_H

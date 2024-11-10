@@ -23,7 +23,7 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 
 #include "parser.h"
 
-#include "../../syntax.h"
+#include "../../aux.h"
 
 #if !defined __has_attribute || defined _MSC_VER
 #define __attribute__(x)

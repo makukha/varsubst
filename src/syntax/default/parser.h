@@ -3,7 +3,7 @@
 #ifndef PCC_INCLUDED_PARSER_H
 #define PCC_INCLUDED_PARSER_H
 
-#include "../../syntax.h"
+#include "../../aux.h"
 
 #ifdef __cplusplus
 extern "C" {
