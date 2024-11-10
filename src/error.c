@@ -4,12 +4,14 @@
 
 // error names
 
-const VsubError VSUB_ERRORS[] = {
-    {VSUB_SUCCESS, "success"},
-    {VSUB_ERROR_SYNTAX, "invalid syntax"},
-    {VSUB_ERROR_VARIABLE, "variable error"},
-    {VSUB_ERROR_PARSER, "parser error"},
-    {VSUB_ERROR_MEMORY, "memory error"},
+const char *VSUB_ERRORS[] = {
+    "success",              // 0 = VSUB_SUCCESS
+    "file read error",      // -1 = VSUB_ERR_FILE_READ
+    "unable to open file",  // -2 = VSUB_ERR_FILE_OPEN
+    "memory error",         // -3 = VSUB_ERR_MEMORY
+    "invalid syntax",       // -4 = VSUB_ERR_SYNTAX
+    "variable error",       // -5 = VSUB_ERR_VARIABLE
+    "parser error",         // -6 = VSUB_ERR_PARSER
 };
 
 
@@ -34,10 +36,10 @@ void vsub_print_error_sub(const Vsub *sub, bool use_color) {
     switch (sub->err) {
         case VSUB_SUCCESS:
             break;  // no errors
-        case VSUB_ERROR_SYNTAX:
+        case VSUB_ERR_SYNTAX:
             fprintf(stderr, "%sinvalid input syntax on pos %ld%s\n", C, sub->inpc, R);
             break;
-        case VSUB_ERROR_VARIABLE:
+        case VSUB_ERR_VARIABLE:
             if (sub->errvar && sub->errmsg) {  // expected
                 fprintf(stderr, "%svariable error: %s %s on pos %ld%s\n",
                     C, sub->errvar, sub->errmsg, sub->inpc, R);
@@ -46,14 +48,14 @@ void vsub_print_error_sub(const Vsub *sub, bool use_color) {
                 fprintf(stderr, "%svariable error on pos %ld%s\n", C, sub->inpc, R);
             }
             break;
-        case VSUB_ERROR_PARSER:
+        case VSUB_ERR_PARSER:
             fprintf(stderr, "%sunexpected parser error on pos %ld%s\n", C, sub->inpc, R);
             break;
-        case VSUB_ERROR_MEMORY:
+        case VSUB_ERR_MEMORY:
             fprintf(stderr, "%sout of memory%s\n", C, R);
             break;
         default:
-            fprintf(stderr, "%sundefined error%s\n", C, R);
+            fprintf(stderr, "%sunknown error%s\n", C, R);
             break;
     }
 }

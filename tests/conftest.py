@@ -43,14 +43,12 @@ class Executable:
     def __str__(self):
         return str(self.name)
 
-    def getoutput(self, cmdline: str, encoding: str | None = 'utf-8') -> str | bytes:
-        res = subprocess.run(
+    def run(self, cmdline: str, encoding: str | None = 'utf-8') -> subprocess.CompletedProcess:
+        return subprocess.run(
             ['sh', '-c', cmdline],
             capture_output=True,
             encoding=encoding,
         )
-        assert res.returncode == 0
-        return res.stdout
 
 
 @pytest.fixture(scope='session')

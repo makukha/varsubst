@@ -44,7 +44,7 @@ typedef struct Vsub {
     size_t maxres;  // max length of result string; unlim if set to 0
     // result
     char *res;      // result string; points to input if plain=1 and copyplain=0
-    char err;       // see error/success flags
+    int err;        // see error/success flags
     char *errvar;   // first variable name with error; NULL by default
     char *errmsg;   // variable error message; NULL by default
     bool trunc;     // whether result string was truncated because of maxinp or maxres
@@ -93,17 +93,14 @@ extern const size_t VSUB_FORMAT_COUNT;
 // --- error handling
 
 #define VSUB_SUCCESS 0
-#define VSUB_ERROR_SYNTAX 1
-#define VSUB_ERROR_VARIABLE 2
-#define VSUB_ERROR_PARSER 3
-#define VSUB_ERROR_MEMORY 4
+#define VSUB_ERR_FILE_READ -1  // match EOF
+#define VSUB_ERR_FILE_OPEN -2
+#define VSUB_ERR_MEMORY -3
+#define VSUB_ERR_SYNTAX -4
+#define VSUB_ERR_VARIABLE -5
+#define VSUB_ERR_PARSER -6
 
-typedef struct VsubError {
-    char id;
-    const char *name;
-} VsubError;
-
-extern const VsubError VSUB_ERRORS[];  // using VSUB_* above as indexes
+extern const char* VSUB_ERRORS[];  // using (- VSUB_ERR_*) above as indexes
 
 
 #endif  // VSUB_H

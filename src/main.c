@@ -6,7 +6,7 @@
 #include "vsub.h"
 
 
-#define printf_error(...) fprintf(stderr, __VA_ARGS__)
+#define printf_error(...) { fprintf(stderr, __VA_ARGS__); fputs("\n", stderr); }
 
 static void print_version() {
     puts("vsub " VSUB_VERSION);
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
             // positional
             case 1:
                 if (pathind > 0) {
-                    printf_error("multiple paths not allowed\n");
+                    printf_error("multiple paths not allowed");
                     result = false;
                     goto done;
                 }
@@ -135,11 +135,11 @@ int main(int argc, char *argv[]) {
                 break;
             // errors
             case '?':
-                printf_error("unrecognized option '%s'\n", argv[optind - 1]);
+                printf_error("invalid option: %s", argv[optind - 1]);
                 result = false;
                 goto done;
             default:
-                printf_error("unexpected getopt character code 0%o\n", o);
+                printf_error("unexpected getopt character code: 0%o", o);
                 result = false;
                 goto done;
         }
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
     // --- initialize context
 
     if (!vsub_init(&sub)) {
-        printf_error("out of memory\n");
+        printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
         result = false;
         goto done;
     }
@@ -157,27 +157,27 @@ int main(int argc, char *argv[]) {
 
     // syntax
     if ((sub.syntax = vsub_FindSyntax(use_syntax)) == NULL) {
-        printf_error("unsupported syntax %s\n", use_syntax);
+        printf_error("unsupported syntax: %s", use_syntax);
         result = false;
         goto done;
     }
     // input
     if (path) {
         if (!(fp = fopen(path, "r"))) {
-            printf_error("failed to open file %s\n", path);
+            printf_error("%s: %s", VSUB_ERRORS[-VSUB_ERR_FILE_OPEN], path);
             result = false;
             goto done;
         }
     }
     if (!vsub_UseTextFromFile(&sub, fp)) {
-        printf_error("out of memory\n");
+        printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
         result = false;
         goto done;
     }
     // vars
     if (use_env) {
         if (!vsub_UseVarsFromEnv(&sub)) {
-            printf_error("out of memory\n");
+            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
             result = false;
             goto done;
         }
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     // output
     int outfmt;
     if ((outfmt = vsub_FindFormat(use_format)) == -1) {
-        printf_error("unsupported format %s\n", use_format);
+        printf_error("unsupported output format: %s", use_format);
         result = false;
         goto done;
     }
@@ -210,20 +210,20 @@ int main(int argc, char *argv[]) {
     switch (outfmt) {
         case VSUB_FMT_PLAIN:
             if (vsub_OutputPlain(&sub, stdout, result, use_color, use_detailed) == EOF) {
-                printf_error("failed to show results\n");  // todo: add granularity: file/memory error
+                printf_error("failed to show results");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;
             }
             break;
         case VSUB_FMT_JSON:
             if (vsub_OutputJson(&sub, stdout, use_detailed) == EOF) {
-                printf_error("failed to show results\n");  // todo: add granularity: file/memory error
+                printf_error("failed to show results");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;
             }
             break;
         default:
-            printf_error("unsupported output format %d\n", outfmt);
+            printf_error("unsupported output format code: %d", outfmt);
             result = false;
             goto done;
     }

@@ -131,7 +131,7 @@ bool vsub_add_details(cJSON *root, const Vsub *sub) {
     }}
     {METRIC("err", "error code", true) {
         ADD_KEY(metric, value, Number(sub->err));
-        ADD_KEY(metric, hint, StringReference(VSUB_ERRORS[(int)sub->err].name));
+        ADD_KEY(metric, hint, StringReference(VSUB_ERRORS[-sub->err]));
     }}
     {METRIC("errvar", "error var name", sub->errvar) {
         ADD_KEY(metric, value, StringReference(sub->errvar));
