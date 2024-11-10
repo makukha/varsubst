@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
     // --- set context parameters
 
     // syntax
-    if ((sub.syntax = vsub_syntax_lookup(use_syntax)) == NULL) {
+    if ((sub.syntax = vsub_FindSyntax(use_syntax)) == NULL) {
         printf_error("unsupported syntax %s\n", use_syntax);
         result = false;
         goto done;
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
     }
     // output
     int outfmt;
-    if ((outfmt = vsub_format_lookup(use_format)) == -1) {
+    if ((outfmt = vsub_FindFormat(use_format)) == -1) {
         printf_error("unsupported format %s\n", use_format);
         result = false;
         goto done;

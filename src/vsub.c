@@ -26,7 +26,7 @@ const VsubParser VSUB_PARSERS[] = {
 };
 const size_t VSUB_SYNTAXES_COUNT = sizeof(VSUB_SYNTAXES) / sizeof(VSUB_SYNTAXES[0]);
 
-const VsubSyntax *vsub_syntax_lookup(const char *name) {
+const VsubSyntax *vsub_FindSyntax(const char *name) {
     for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
         if (strcmp(name, VSUB_SYNTAXES[i].name) == 0) {
             return &VSUB_SYNTAXES[i];
@@ -41,7 +41,7 @@ const VsubSyntax *vsub_syntax_lookup(const char *name) {
 const char *VSUB_FORMAT[] = {"plain", "json"};
 const size_t VSUB_FORMAT_COUNT = sizeof(VSUB_FORMAT) / sizeof(VSUB_FORMAT[0]);
 
-int vsub_format_lookup(const char *name) {
+int vsub_FindFormat(const char *name) {
     for (int i = 0; i < VSUB_FORMAT_COUNT; i++) {
         if (strcmp(name, VSUB_FORMAT[i]) == 0) {
             return i;

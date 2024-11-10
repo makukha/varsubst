@@ -31,7 +31,7 @@ typedef struct VsubSyntax {
 extern const VsubSyntax VSUB_SYNTAXES[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAXES_COUNT;
 
-VSUB_EXPORT const VsubSyntax *vsub_syntax_lookup(const char *name);  // find by name
+VSUB_EXPORT const VsubSyntax *vsub_FindSyntax(const char *name);  // find by name
 
 
 // --- substitution context
@@ -82,7 +82,7 @@ VSUB_EXPORT bool vsub_UseVarsFromEnv(Vsub *sub);
 #define VSUB_FMT_PLAIN 0
 #define VSUB_FMT_JSON 1
 
-VSUB_EXPORT int vsub_format_lookup(const char *name);
+VSUB_EXPORT int vsub_FindFormat(const char *name);
 VSUB_EXPORT int vsub_fputs_plain(Vsub *sub, FILE *fp, bool result, bool use_color, bool detailed);
 VSUB_EXPORT int vsub_fputs_json(Vsub *sub, FILE *fp, bool detailed);
 
