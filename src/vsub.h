@@ -14,17 +14,10 @@
 #include <stdio.h>
 
 #include <cjson/cJSON.h>
+#include "vsub_aux.h"
 
 
 // --- Internals ---
-
-// parsers
-typedef struct VsubParser {
-    void *(*create)(void *aux);
-    int (*parse)(void *ctx, void *ret);
-    void (*destroy)(void *ctx);
-} VsubParser;
-extern const VsubParser VSUB_PARSER[];  // using VSUB_SX_* as indexes
 
 // input base
 typedef struct VsubTextSrc {
@@ -37,7 +30,11 @@ typedef struct VsubVarsSrc {
     void *prev;
 } VsubVarsSrc;
 
-// auxiliary struct
+
+// --- API ---
+
+// --- auxiliary object
+
 typedef struct Auxil {
     void *sub;
     // syntax methods
@@ -62,26 +59,29 @@ typedef struct Auxil {
 void aux_set_tsrc(Auxil *aux, VsubTextSrc *src);
 void aux_add_vsrc(Auxil *aux, VsubVarsSrc *src);
 
-// buffer constants
+// buffer management constants
 #define VSUB_BRES_MIN 256  // initial result buffer size
 #define VSUB_BRES_INC 1024 // additional free space reserved on every reallocation
 #define VSUB_BERR_MIN 256  // initial error buffer size
 
 
-// --- API ---
+// --- syntaxes
 
-// syntaxes
 #define VSUB_SX_DEFAULT 0
 #define VSUB_SX_DC243 1
 #define VSUB_SX_GGENV 2
+
 typedef struct VsubSyntax {
     const int id;
     const char *name;
     const char *title;
 } VsubSyntax;
-extern const VsubSyntax VSUB_SYNTAX[];  // using VSUB_SX_* as indexes
-extern const size_t VSUB_SYNTAX_COUNT;
+
+extern const VsubSyntax VSUB_SYNTAXES[];  // using VSUB_SX_* as indexes
+extern const size_t VSUB_SYNTAXES_COUNT;
+
 VSUB_EXPORT const VsubSyntax *vsub_syntax_lookup(const char *name);  // find by name
+
 
 // results and params
 typedef struct Vsub {

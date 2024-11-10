@@ -12,22 +12,22 @@
     .destroy=(void (*)(void *))pfx##_destroy\
 }
 
-const VsubSyntax VSUB_SYNTAX[] = {
+const VsubSyntax VSUB_SYNTAXES[] = {
     {0, "default", "simple direct substitution"},
-    {1, "dc243",   "Docker Compose v2.4.3"},
-    {2, "ggenv",   "GNU gettext envsubst"},
+//    {1, "dc243",   "Docker Compose v2.4.3"},
+//    {2, "ggenv",   "GNU gettext envsubst"},
 };
-const VsubParser VSUB_PARSER[] = {
+const VsubParser VSUB_PARSERS[] = {
     PARSER(vsub_sx_default),
     PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
     PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_ggenv)
 };
-const size_t VSUB_SYNTAX_COUNT = sizeof(VSUB_SYNTAX) / sizeof(VSUB_SYNTAX[0]);
+const size_t VSUB_SYNTAXES_COUNT = sizeof(VSUB_SYNTAXES) / sizeof(VSUB_SYNTAXES[0]);
 
 const VsubSyntax *vsub_syntax_lookup(const char *name) {
-    for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
-        if (strcmp(name, VSUB_SYNTAX[i].name) == 0) {
-            return &VSUB_SYNTAX[i];
+    for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
+        if (strcmp(name, VSUB_SYNTAXES[i].name) == 0) {
+            return &VSUB_SYNTAXES[i];
         }
     }
     return NULL;
@@ -199,7 +199,7 @@ static void vsub_prepare_to_run(Vsub *sub) {
 
 void vsub_init(Vsub *sub) {
     // vsub params
-    sub->syntax = &VSUB_SYNTAX[VSUB_SX_DEFAULT];
+    sub->syntax = &VSUB_SYNTAXES[VSUB_SX_DEFAULT];
     sub->depth = 1;
     sub->maxinp = 0;
     sub->maxres = 0;
@@ -241,7 +241,7 @@ bool vsub_alloc(Vsub *sub) {
         }
     }
     // parser
-    sub->aux.parser = &VSUB_PARSER[sub->syntax->id];
+    sub->aux.parser = &VSUB_PARSERS[sub->syntax->id];
     if (!sub->aux.pctx) {
         if (!(sub->aux.pctx = sub->aux.parser->create(&(sub->aux)))) {
             sub->err = VSUB_MEMORY_ERROR;

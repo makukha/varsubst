@@ -6,6 +6,8 @@
 #include "vsub.h"
 
 
+#define printf_error(...) fprintf(stderr, __VA_ARGS__)
+
 static void print_version() {
     puts("vsub " VSUB_VERSION);
 }
@@ -19,16 +21,16 @@ static void print_formats() {
 static void print_syntaxes() {
     // measure name column width
     int namew = 0;
-    for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
-        int w = strlen(VSUB_SYNTAX[i].name);
+    for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
+        int w = strlen(VSUB_SYNTAXES[i].name);
         namew = (w > namew) ? w : namew;
     }
     // print
     char *fmttpl = "%%-%ds  %%s\n";
     char fmt[sizeof(fmttpl) + 11];  // 10 bytes for %d and 1 byte for '\0'
     snprintf(fmt, sizeof(fmt), fmttpl, namew);
-    for (size_t i = 0; i < VSUB_SYNTAX_COUNT; i++) {
-        printf(fmt, VSUB_SYNTAX[i].name, VSUB_SYNTAX[i].title);
+    for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
+        printf(fmt, VSUB_SYNTAXES[i].name, VSUB_SYNTAXES[i].title);
     }
 }
 
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]) {
             // positional
             case 1:
                 if (pathind > 0) {
-                    snprintf(err, errsz, "multiple paths not allowed\n");
+                    printf_error("multiple paths not allowed\n");
                     result = false;
                     goto done;
                 }
@@ -132,18 +134,18 @@ int main(int argc, char *argv[]) {
                 break;
             // errors
             case '?':
-                snprintf(err, errsz, "unrecognized option '%s'\n", argv[optind - 1]);
+                printf_error("unrecognized option '%s'\n", argv[optind - 1]);
                 result = false;
                 goto done;
             default:
-                snprintf(err, errsz, "unexpected getopt character code 0%o\n", o);
+                printf_error("unexpected getopt character code 0%o\n", o);
                 result = false;
                 goto done;
         }
     }
     // syntax
     if ((sub.syntax = vsub_syntax_lookup(use_syntax)) == NULL) {
-        snprintf(err, errsz, "unsupported syntax %s\n", use_syntax);
+        printf_error("unsupported syntax %s\n", use_syntax);
         result = false;
         goto done;
     }
@@ -153,20 +155,20 @@ int main(int argc, char *argv[]) {
     }
     else {
         if (!(fp = fopen(path, "r"))) {
-            snprintf(err, errsz, "unable to read file %s\n", path);
+            printf_error("failed to open file %s\n", path);
             result = false;
             goto done;
         }
     }
     if (!vsub_use_text_from_file(&sub, fp)) {
-        snprintf(err, errsz, "out of memory\n");
+        printf_error("out of memory\n");
         result = false;
         goto done;
     }
     // vars
     if (use_env) {
         if (!vsub_add_vars_from_env(&sub)) {
-            snprintf(err, errsz, "out of memory\n");
+            printf_error("out of memory\n");
             result = false;
             goto done;
         }
@@ -174,7 +176,7 @@ int main(int argc, char *argv[]) {
     // output
     int outfmt;
     if ((outfmt = vsub_format_lookup(use_format)) == -1) {
-        snprintf(err, errsz, "unsupported format %s\n", use_format);
+        printf_error("unsupported format %s\n", use_format);
         result = false;
         goto done;
     }
@@ -195,28 +197,27 @@ int main(int argc, char *argv[]) {
     switch (outfmt) {
         case VSUB_FMT_PLAIN:
             if (vsub_fputs_plain(&sub, stdout, result, use_color, use_detailed) == EOF) {
-                snprintf(err, errsz, "output error\n");
+                printf_error("failed to show results\n");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;
             }
             break;
         case VSUB_FMT_JSON:
             if (vsub_fputs_json(&sub, stdout, use_detailed) == EOF) {
-                snprintf(err, errsz, "output error\n");
+                printf_error("failed to show results\n");  // todo: add granularity: file/memory error
                 result = false;
                 goto done;
             }
             break;
         default:
-            snprintf(err, errsz, "unsupported format %d\n", outfmt);
+            printf_error("unsupported output format %d\n", outfmt);
             result = false;
             goto done;
     }
+//    vsub_print_error_sub(&sub, use_color); // todo: this should be closer to output
+//    vsub_print_error_str(err, use_color); // todo: this should be closer to output
 
 done:
-    vsub_print_error_sub(&sub, use_color);
-    vsub_print_error_str(err, use_color);
-    // deallocate resources
     vsub_free(&sub);
     if (fp != stdin && fp != NULL) {
         fclose(fp);
