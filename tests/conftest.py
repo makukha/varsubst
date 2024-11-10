@@ -37,15 +37,11 @@ class Executable:
     formats: list[str]
     syntaxes: list[str]
 
-    @property
-    def path(self) -> Path:
-        return self.home / self.name
-
     def __post_init__(self):
         assert (self.home / self.name).is_file()
 
     def __str__(self):
-        return str(self.path)
+        return str(self.name)
 
     def getoutput(self, cmdline: str, encoding: str | None = 'utf-8') -> str | bytes:
         res = subprocess.run(

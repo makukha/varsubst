@@ -17,7 +17,7 @@ int vsub_fputs_json(Vsub *sub, FILE *fp, bool detailed) {
         ret = EOF;
         goto done;
     }
-    fputs(text, fp);
+    fprintf(fp, "%s\n", text);
 
 done:
     cJSON_Delete(data);
