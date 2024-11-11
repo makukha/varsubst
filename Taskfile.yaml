@@ -11,13 +11,14 @@ tasks:
     desc: Run dev environment.
     vars: {CMD: '{{if .CLI_ARGS}}task {{.CLI_ARGS}}{{else}}bash -i{{end}}'}
     cmds:
-      - task: devbuild
+      - task: dev:build
       - docker compose run --rm dev {{.CMD}}
 
-  devbuild:
-    desc: Build dev environment.
+  dev:build:
+    internal: true
     sources:
       - .dev/Dockerfile
+      - .dev/compose.yaml
       - .dev/requirements.txt
     cmds:
       - docker compose build
@@ -32,7 +33,8 @@ tasks:
     vars: {SYNTAX: '{{index .MATCH 0}}'}
     sources: ['tests/research/test_{{.SYNTAX}}.py']
     cmds:
-      - docker compose run --rm --build research-{{.SYNTAX}}
+      - task: dev:build
+      - docker compose run --rm research-{{.SYNTAX}}
 
   clean:
     desc: Clean all builder artefacts.

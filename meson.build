@@ -4,6 +4,7 @@ project(
     license: 'MIT',
     license_files: ['LICENSE'],
     default_options: ['c_std=c99'],
+    meson_version: '>=0.60.0',
 )
 add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
 
