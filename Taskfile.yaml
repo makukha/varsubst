@@ -1,0 +1,110 @@
+version: '3'
+
+env:
+  COMPOSE_FILE: .dev/compose.yaml
+
+tasks:
+
+  # --- host ---
+
+  dev:
+    desc: Run dev environment.
+    vars: {CMD: '{{if .CLI_ARGS}}task {{.CLI_ARGS}}{{else}}bash -i{{end}}'}
+    cmds:
+      - task: dev:build
+      - docker compose run --rm dev {{.CMD}}
+
+  dev:build:
+    internal: true
+    sources:
+      - .dev/Dockerfile
+      - .dev/compose.yaml
+      - .dev/requirements.txt
+    cmds:
+      - docker compose build
+
+  research:
+    desc: Test original syntax implementations.
+    cmds:
+      - task: research:dc243
+
+  research:*:
+    internal: true
+    vars: {SYNTAX: '{{index .MATCH 0}}'}
+    sources: ['research/test_{{.SYNTAX}}.py']
+    cmds:
+      - task: dev:build
+      - docker compose run --rm research-{{.SYNTAX}}
+
+  clean:
+    desc: Clean all builder artefacts.
+    cmds:
+      - rm -rf build-* subprojects
+      - docker compose down --rmi local --volumes
+
+  # --- guest ---
+
+  run:
+    desc: Run target executable.
+    vars: {BTYPE: release}
+    cmds:
+      - task: build:release
+      - build-{{.BTYPE}}/vsub {{.CLI_ARGS}}
+
+  test:
+    desc: Run tests.
+    cmds:
+      - task: build:release
+      - pytest -x tests
+
+  debug:
+    desc: Run debugger.
+    cmds:
+      - task: build:debug
+      - gdb --tui build-debug/vsub
+
+  build:
+    desc: Build debug and release.
+    cmds:
+      - task: build:release
+
+  build:*:
+    desc: Build debug or release.
+    vars: {BTYPE: '{{index .MATCH 0}}'}
+    cmds:
+      - task: setup:wrapdb
+      - task: setup:build:{{.BTYPE}}
+      - task: prebuild:parsers
+      - meson compile -C build-{{.BTYPE}}
+      - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
+
+  version:
+    desc: Bump project version, $ task version -- bump minor
+    cmds:
+      - bump-my-version {{.CLI_ARGS}}
+
+  # setup steps
+
+  setup:wrapdb:
+    internal: true
+    status:
+      - test -f subprojects/wrapdb.json
+    cmds:
+      - meson wrap update-db
+
+  setup:build:*:
+    internal: true
+    vars: {BTYPE: '{{index .MATCH 0}}'}
+    sources: [meson.build]
+    generates: ['build-{{.BTYPE}}/**/*']
+    cmds:
+      - meson setup build-{{.BTYPE}} --buildtype={{.BTYPE}}
+
+  # prebuild steps
+
+  prebuild:parsers:
+    internal: true
+    sources: [src/syntax/*/parser.peg]
+    cmds:
+      - cmd: packcc {{.ITEM}}
+        for: sources

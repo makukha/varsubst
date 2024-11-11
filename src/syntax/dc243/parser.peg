@@ -1,0 +1,17 @@
+%prefix "vsub_sx_default"
+%auxil "Auxil *"
+%value "const char *"
+%common {
+#include "../../aux.h"
+}
+
+input <- atom* !.
+
+atom  <- '$$'       { USE(Const("$")) }
+       / braced     { IF(Set(v)) THEN(Value) ELSE(Input) }
+       / '$' v:var  { IF(Set(v)) THEN(Value) ELSE(Const("")) }
+       / .          { USE(Input) }
+
+braced <- '${' v:var '}'  { IF(Set(v)) THEN(Value) ELSE(Const("")) }
+
+var <- <[_a-zA-Z] [_a-zA-Z0-9]*>  { $$ = $1; }

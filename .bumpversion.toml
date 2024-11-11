@@ -1,0 +1,13 @@
+[tool.bumpversion]
+current_version = "0.1.0"
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "meson.build"
+search = "version: '{current_version}',"
+replace = "version: '{new_version}',"
+
+[[tool.bumpversion.files]]
+filename = "src/vsub.h"
+search = "#define VSUB_VERSION \"{current_version}\""
+replace = "#define VSUB_VERSION \"{new_version}\""

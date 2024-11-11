@@ -1,0 +1,13 @@
+# building
+meson
+ninja
+
+# testing
+gcovr
+pytest
+pytest-sugar
+pytest-xdist
+rich
+
+# releasing
+bump-my-version

@@ -1,2 +1,3 @@
-# varsubst
-Bash-style variable substitution in C.
+# vsub
+
+> Bash-style variable substitution C library and tool.
