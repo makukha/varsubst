@@ -1,6 +1,9 @@
 # vsub
 > Bash-style variable substitution in C library and tool.
 
+> Bash-style variable substitution C library and tool.
+
+
 # Features
 
 * Rich syntax compatible with [Docker Compose](https://docs.docker.com/reference/compose-file/interpolation/)
