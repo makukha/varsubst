@@ -18,20 +18,20 @@
 
 // --- syntaxes
 
-#define VSUB_SX_DEFAULT 0
-#define VSUB_SX_DC243 1
-#define VSUB_SX_GGENV 2
-
 typedef struct VsubSyntax {
     const int id;
     const char *name;
     const char *title;
 } VsubSyntax;
 
+VSUB_EXPORT const VsubSyntax *vsub_FindSyntax(const char *name);  // find by name
+
+#define VSUB_SX_DEFAULT 0
+#define VSUB_SX_DC243 1
+#define VSUB_SX_GGENV 2
+
 extern const VsubSyntax VSUB_SYNTAXES[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAXES_COUNT;
-
-VSUB_EXPORT const VsubSyntax *vsub_FindSyntax(const char *name);  // find by name
 
 
 // --- substitution context
@@ -79,20 +79,22 @@ VSUB_EXPORT bool vsub_UseVarsFromKvarray(Vsub *sub, size_t c, const char *kv[]);
 
 // --- output formats
 
-#define VSUB_FMT_PLAIN 0
-#define VSUB_FMT_JSON 1
-#define VSUB_FMT_PRETTY 2
-
 VSUB_EXPORT int vsub_FindFormat(const char *name);
 VSUB_EXPORT int vsub_OutputPlain(Vsub *sub, FILE *fp);
 VSUB_EXPORT int vsub_OutputJson(Vsub *sub, FILE *fp, bool detailed);
 VSUB_EXPORT int vsub_OutputPretty(Vsub *sub, FILE *fp, bool result, bool detailed);
+
+#define VSUB_FMT_PLAIN 0
+#define VSUB_FMT_JSON 1
+#define VSUB_FMT_PRETTY 2
 
 extern const char *VSUB_FORMAT[];  // using VSUB_FMT_* above as indexes
 extern const size_t VSUB_FORMAT_COUNT;
 
 
 // --- error handling
+
+#define vsub_ErrMsg(NAME) VSUB_ERRORS[-VSUB_ERR_##NAME]
 
 #define VSUB_SUCCESS 0
 #define VSUB_ERR_FILE_READ -1  // match EOF

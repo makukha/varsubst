@@ -59,7 +59,7 @@ typedef struct Auxil {
 #define _use_Value    { auxil->append_subst(auxil, _0e, __tmp); }
 #define _use_Other(s) { auxil->append_subst(auxil, _0e, s); }
 #define _use_Error(e) { auxil->append_error(auxil, _0e, __tmp, e); return 0; }
-#define USE(a) _use_ ## a;
+#define USE(a) _use_##a;
 
 // rules
 #define _get_Value(v)  const char *__tmp = auxil->getvalue(auxil, v)
@@ -67,9 +67,9 @@ typedef struct Auxil {
 #define _if_Empty(v)   _get_Value(v); if(__tmp != NULL && strlen(__tmp) == 0)
 #define _if_Filled(v)  _get_Value(v); if(__tmp != NULL && strlen(__tmp) >= 1)
 #define _if_Missing(v) _get_Value(v); if(__tmp == NULL || strlen(__tmp) == 0)
-#define IF(s)   { _if_ ## s
-#define THEN(a) _use_ ## a
-#define ELSE(a) else _use_ ## a }
+#define IF(s)   { _if_##s
+#define THEN(a) _use_##a
+#define ELSE(a) else _use_##a }
 
 
 #endif  // VSUB_AUX_H

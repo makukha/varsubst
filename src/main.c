@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'v':
                 if (!arr_append(&vars, optarg)) {
-                    printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+                    printf_error(vsub_ErrMsg(MEMORY));
                     result = false;
                     goto done;
                 }
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
     // --- initialize context
 
     if (!vsub_init(&sub)) {
-        printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+        printf_error(vsub_ErrMsg(MEMORY));
         result = false;
         goto done;
     }
@@ -170,13 +170,13 @@ int main(int argc, char *argv[]) {
     // input
     if (path) {
         if (!(fp = fopen(path, "r"))) {
-            printf_error("%s: %s", VSUB_ERRORS[-VSUB_ERR_FILE_OPEN], path);
+            printf_error("%s: %s", vsub_ErrMsg(FILE_OPEN), path);
             result = false;
             goto done;
         }
     }
     if (!vsub_UseTextFromFile(&sub, fp)) {
-        printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+        printf_error(vsub_ErrMsg(MEMORY));
         result = false;
         goto done;
     }
@@ -184,14 +184,14 @@ int main(int argc, char *argv[]) {
     // vars
     if (use_env) {
         if (!vsub_UseVarsFromEnv(&sub)) {
-            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            printf_error(vsub_ErrMsg(MEMORY));
             result = false;
             goto done;
         }
     }
     if (vars.count) {
-        if (!vsub_UseVarsFromKvarray(&sub, vars.count, vars.items)) {
-            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+        if (!vsub_UseVarsFromKvarray(&sub, vars.count, (char **)vars.items)) {
+            printf_error(vsub_ErrMsg(MEMORY));
             result = false;
             goto done;
         }
@@ -243,15 +243,15 @@ int main(int argc, char *argv[]) {
         case VSUB_SUCCESS:
             break;  // no processing errors
         case VSUB_ERR_MEMORY:
-            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            printf_error(vsub_ErrMsg(MEMORY));
             result = false;
             goto done;
         case VSUB_ERR_OUTPUT:
-            printf_error(VSUB_ERRORS[-VSUB_ERR_OUTPUT]);
+            printf_error(vsub_ErrMsg(OUTPUT));
             result = false;
             goto done;
         default:
-            printf_error("%s: %d", VSUB_ERRORS[-VSUB_ERR_UNKNOWN], outres);  // non-reproducible guard
+            printf_error("%s: %d", vsub_ErrMsg(UNKNOWN), outres);  // non-reproducible guard
             result = false;
             goto done;
       }
@@ -264,24 +264,24 @@ processing_failed:
         case VSUB_SUCCESS:
             break;  // no processing errors
         case VSUB_ERR_MEMORY:
-            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            printf_error(vsub_ErrMsg(MEMORY));
             break;
         case VSUB_ERR_SYNTAX:
-            printf_error("%s: position %ld", VSUB_ERRORS[-VSUB_ERR_MEMORY], sub.inpc);
+            printf_error("%s: position %ld", vsub_ErrMsg(MEMORY), sub.inpc);
             break;
         case VSUB_ERR_VARIABLE:
             if (sub.errvar && sub.errmsg) {  // expected
-                printf_error("%s: %s %s", VSUB_ERRORS[-VSUB_ERR_VARIABLE], sub.errvar, sub.errmsg);
+                printf_error("%s: %s %s", vsub_ErrMsg(VARIABLE), sub.errvar, sub.errmsg);
             }
             else {  // non-reproducible guard
-                printf_error(VSUB_ERRORS[-VSUB_ERR_VARIABLE]);
+                printf_error(vsub_ErrMsg(VARIABLE));
             }
             break;
         case VSUB_ERR_PARSER:
-            printf_error("%s: position %ld", VSUB_ERRORS[-VSUB_ERR_PARSER], sub.inpc);
+            printf_error("%s: position %ld", vsub_ErrMsg(PARSER), sub.inpc);
             break;
         default:
-            printf_error("%s: %d", VSUB_ERRORS[-VSUB_ERR_UNKNOWN], sub.err);  // non-reproducible guard
+            printf_error("%s: %d", vsub_ErrMsg(UNKNOWN), sub.err);  // non-reproducible guard
             break;
     }
 
