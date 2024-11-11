@@ -31,7 +31,7 @@ tasks:
   research:*:
     internal: true
     vars: {SYNTAX: '{{index .MATCH 0}}'}
-    sources: ['tests/research/test_{{.SYNTAX}}.py']
+    sources: ['research/test_{{.SYNTAX}}.py']
     cmds:
       - task: dev:build
       - docker compose run --rm research-{{.SYNTAX}}

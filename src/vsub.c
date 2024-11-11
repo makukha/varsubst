@@ -16,13 +16,13 @@
 
 const VsubSyntax VSUB_SYNTAXES[] = {
     {0, "default", "simple direct substitution"},
-//    {1, "dc243",   "Docker Compose v2.4.3"},
+    {1, "dc243",   "Docker Compose v2.4.3"},
 //    {2, "ggenv",   "GNU gettext envsubst"},
 };
 
 const VsubParser VSUB_PARSERS[] = {
     PARSER(vsub_sx_default),
-//    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
+    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
 //    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_ggenv)
 };
 
