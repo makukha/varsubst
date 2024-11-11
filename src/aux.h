@@ -58,7 +58,6 @@ typedef struct Auxil {
 // actions
 #define _use_Input    { auxil->append_orig(auxil, _0e, _0); }
 #define _use_Const(s) { auxil->append_orig(auxil, _0e, s); }
-#define _use_Empty    { auxil->append_orig(auxil, _0e, ""); }
 #define _use_Value    { auxil->append_subst(auxil, _0e, __tmp); }
 #define _use_Other(s) { auxil->append_subst(auxil, _0e, s); }
 #define _use_Error(e) { auxil->append_error(auxil, _0e, __tmp, e); return 0; }
