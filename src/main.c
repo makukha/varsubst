@@ -270,10 +270,12 @@ processing_failed:
             printf_error("%s: position %ld", vsub_ErrMsg(MEMORY), sub.inpc);
             break;
         case VSUB_ERR_VARIABLE:
-            if (sub.errvar && sub.errmsg) {  // expected
+            if (sub.errvar && sub.errmsg) {
+                // expected
                 printf_error("%s: %s %s", vsub_ErrMsg(VARIABLE), sub.errvar, sub.errmsg);
             }
-            else {  // non-reproducible guard
+            else {
+                // non-reproducible guard
                 printf_error(vsub_ErrMsg(VARIABLE));
             }
             break;

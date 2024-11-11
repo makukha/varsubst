@@ -22,6 +22,18 @@ tasks:
     cmds:
       - docker compose build
 
+  research:
+    desc: Test original syntax implementations.
+    cmds:
+      - task: research:dc243
+
+  research:*:
+    internal: true
+    vars: {SYNTAX: '{{index .MATCH 0}}'}
+    sources: ['tests/research/test_{{.SYNTAX}}.py']
+    cmds:
+      - docker compose run --rm --build research-{{.SYNTAX}}
+
   clean:
     desc: Clean all builder artefacts.
     cmds:
