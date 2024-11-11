@@ -78,6 +78,11 @@ tasks:
       - meson compile -C build-{{.BTYPE}}
       - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
 
+  version:
+    desc: Bump project version, $ task version -- bump minor
+    cmds:
+      - bump-my-version {{.CLI_ARGS}}
+
   # setup steps
 
   setup:wrapdb:
