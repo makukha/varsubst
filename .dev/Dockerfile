@@ -46,15 +46,19 @@ VOLUME /root/.ccache
 ENTRYPOINT []
 
 
+# --- research syntaxes
+
 FROM python:3.13.0-bookworm AS research
 SHELL ["/bin/bash", "-eux", "-o", "pipefail", "-c"]
 WORKDIR /research
 COPY requirements.txt ./
 ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,dst=/root/.cache/pip pip install -r requirements.txt
-CMD pytest .
+ENTRYPOINT []
+CMD ["/bin/bash", "-i"]
 
 
+# Docker Compose v2.4.3
 FROM research AS research-dc243
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -70,4 +74,13 @@ echo \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
 apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin
+EOT
+
+
+# GNU envsubst
+FROM research AS research-genv
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+<<EOT
+apt-get install -y --no-install-recommends gettext-base
 EOT

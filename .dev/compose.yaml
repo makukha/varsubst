@@ -19,7 +19,16 @@ services:
     tty: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../research/test_dc243.py:/research/test_dc243.py:ro
+      - ../research:/research
+
+  research-genv:
+    build:
+      context: .
+      target: research-genv
+    stdin_open: true
+    tty: true
+    volumes:
+      - ../research:/research
 
 volumes:
   ccache_data:
