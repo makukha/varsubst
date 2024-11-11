@@ -3,8 +3,10 @@ project(
     version: '0.1.0',
     license: 'MIT',
     license_files: ['LICENSE'],
-    default_options: ['c_std=c11'],
+    default_options: ['c_std=c99'],
 )
+add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
+
 src = files(
     'src/detail.c',
     'src/main.c',

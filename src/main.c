@@ -36,18 +36,20 @@ static void print_syntaxes() {
 }
 
 static void print_usage() {
-    puts("usage: vsub [options] [path]");
-    puts("  options:");
-    puts("    -e, --env         use environment variables");
-    puts("    -E, --envsubst    same as '--env --syntax=ggenv'");
-    puts("    -f, --format=STR  set output format; default: pretty if -d else plain");
-    puts("    -d, --detailed    add extended details");
-    puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
-    puts("    -v, --var=KEY=VAL set substitution variable; takes highest priority");
-    puts("        --formats     list supported output formats");
-    puts("        --syntaxes    list supported syntaxes");
-    puts("        --version     show tool name and version");
-    puts("    -h, --help        show this help and exit");
+    puts(
+        "usage: vsub [options] [path]\n"
+        "  options:\n"
+        "    -e, --env         use environment variables\n"
+        "    -E, --envsubst    same as '--env --syntax=ggenv'\n"
+        "    -f, --format=STR  set output format; default: pretty if -d else plain\n"
+        "    -d, --detailed    add extended details\n"
+        "    -s, --syntax=STR  set syntax to use; default: 'default\n'"
+        "    -v, --var=KEY=VAL set substitution variable; takes highest priority\n"
+        "        --formats     list supported output formats\n"
+        "        --syntaxes    list supported syntaxes\n"
+        "        --version     show tool name and version\n"
+        "    -h, --help        show this help and exit"
+    );
 }
 
 #define VSUB_OPT_VERSION 1000
@@ -190,7 +192,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (vars.count) {
-        if (!vsub_UseVarsFromKvarray(&sub, vars.count, (char **)vars.items)) {
+        if (!vsub_UseVarsFromKvarray(&sub, vars.count, (const char**)vars.items)) {
             printf_error(vsub_ErrMsg(MEMORY));
             result = false;
             goto done;

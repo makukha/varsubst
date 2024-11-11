@@ -1,7 +1,9 @@
 services:
 
   dev:
-    build: .
+    build:
+      context: .
+      target: dev
     hostname: vsub-dev
     stdin_open: true
     tty: true

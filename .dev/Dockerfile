@@ -1,4 +1,4 @@
-FROM python:3.13.0-bookworm
+FROM python:3.13.0-bookworm AS dev
 SHELL ["/bin/bash", "-eux", "-o", "pipefail", "-c"]
 
 ARG PACKCC_VERSION=2.0.2
@@ -47,6 +47,7 @@ ENTRYPOINT []
 
 
 FROM python:3.13.0-bookworm AS research
+SHELL ["/bin/bash", "-eux", "-o", "pipefail", "-c"]
 WORKDIR /research
 COPY requirements.txt ./
 ENV DEBIAN_FRONTEND=noninteractive
@@ -59,7 +60,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
 <<EOT
 apt-get update
-apt-get install ca-certificates curl
+apt-get install -y --no-install-recommends ca-certificates curl
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
