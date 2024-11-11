@@ -21,7 +21,7 @@ static const char *_getvalue(VsubVarsArrays *src, const char *var) {
     return NULL;
 }
 
-bool vsub_UseVarsFromArrays(Vsub *sub, int c, const char *k[], const char *v[]) {
+bool vsub_UseVarsFromArrays(Vsub *sub, size_t c, const char *k[], const char *v[]) {
     VsubVarsArrays *src = malloc(sizeof(VsubVarsArrays));
     if (!src) {
         return false;

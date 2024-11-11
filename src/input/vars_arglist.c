@@ -21,7 +21,7 @@ static const char *_getvalue(VsubVarsArglist *src, const char *var) {
     return NULL;
 }
 
-bool vsub_UseVarsFromArgList(Vsub *sub, int c, const char *kv[]) {
+bool vsub_UseVarsFromArgList(Vsub *sub, size_t c, const char *kv[]) {
     VsubVarsArglist *src = malloc(sizeof(VsubVarsArglist));
     if (!src) {
         return false;

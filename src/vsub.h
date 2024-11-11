@@ -72,8 +72,8 @@ VSUB_EXPORT void vsub_free(Vsub *sub);
 VSUB_EXPORT bool vsub_UseTextFromFile(Vsub *sub, FILE *fp);
 VSUB_EXPORT bool vsub_UseTextFromStr(Vsub *sub, const char *s);
 
-VSUB_EXPORT bool vsub_UseVarsFromArgList(Vsub *sub, int c, const char *kv[]);
-VSUB_EXPORT bool vsub_UseVarsFromArrays(Vsub *sub, int c, const char *k[], const char *v[]);
+VSUB_EXPORT bool vsub_UseVarsFromArgList(Vsub *sub, size_t c, const char *kv[]);
+VSUB_EXPORT bool vsub_UseVarsFromArrays(Vsub *sub, size_t c, const char *k[], const char *v[]);
 VSUB_EXPORT bool vsub_UseVarsFromEnv(Vsub *sub);
 
 

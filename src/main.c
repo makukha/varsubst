@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vsub.h"
+#include "util.h"
 
 
 #define printf_error(...) { fprintf(stderr, __VA_ARGS__); fputs("\n", stderr); }
@@ -20,9 +21,9 @@ static void print_formats() {
 
 static void print_syntaxes() {
     // measure name column width
-    int namew = 0;
+    unsigned namew = 0;
     for (size_t i = 0; i < VSUB_SYNTAXES_COUNT; i++) {
-        int w = strlen(VSUB_SYNTAXES[i].name);
+        unsigned w = strlen(VSUB_SYNTAXES[i].name);
         namew = (w > namew) ? w : namew;
     }
     // print
@@ -37,14 +38,15 @@ static void print_syntaxes() {
 static void print_usage() {
     puts("usage: vsub [options] [path]");
     puts("  options:");
-    puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
     puts("    -e, --env         use environment variables");
     puts("    -E, --envsubst    same as '--env --syntax=ggenv'");
     puts("    -f, --format=STR  set output format; default: pretty if -d else plain");
     puts("    -d, --detailed    add extended details");
+    puts("    -s, --syntax=STR  set syntax to use; default: 'default'");
+    puts("    -v, --var=KEY=VAL set substitution variable; takes highest priority");
     puts("        --formats     list supported output formats");
     puts("        --syntaxes    list supported syntaxes");
-    puts("        --version     show tool name, version, and libvsub version");
+    puts("        --version     show tool name and version");
     puts("    -h, --help        show this help and exit");
 }
 
@@ -52,7 +54,7 @@ static void print_usage() {
 #define VSUB_OPT_FORMATS 1001
 #define VSUB_OPT_SYNTAXES 1002
 
-static const char *shortopts = "-hdeEf:s:";
+static const char *shortopts = "-hdeEf:s:v:";
 static struct option longopts[] = {
     {"detailed", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
@@ -61,6 +63,7 @@ static struct option longopts[] = {
     {"formats", no_argument, 0, VSUB_OPT_FORMATS},
     {"syntax", required_argument, 0, 's'},
     {"syntaxes", no_argument, 0, VSUB_OPT_SYNTAXES},
+    {"var", required_argument, 0, 'v'},
     // standard
     {"help", no_argument, 0, 'h'},
     {"version", no_argument, 0, VSUB_OPT_VERSION},
@@ -74,6 +77,8 @@ int main(int argc, char *argv[]) {
     bool use_env = false;
     char *use_format = NULL;
     char *use_syntax = "default";
+    PtrArray vars;
+    arr_init(&vars);
     char *path = NULL;
     int pathind = 0;
     // parser
@@ -107,15 +112,22 @@ int main(int argc, char *argv[]) {
             case 'f':
                 use_format = optarg;
                 break;
+            case 's':
+                use_syntax = optarg;
+                break;
+            case 'v':
+                if (!arr_append(&vars, optarg)) {
+                    printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+                    result = false;
+                    goto done;
+                }
+                break;
             case VSUB_OPT_FORMATS:
                 print_formats();
                 goto done;
             case VSUB_OPT_SYNTAXES:
                 print_syntaxes();
                 goto done;
-            case 's':
-                use_syntax = optarg;
-                break;
             // positional
             case 1:
                 if (pathind > 0) {
@@ -154,6 +166,7 @@ int main(int argc, char *argv[]) {
         result = false;
         goto done;
     }
+
     // input
     if (path) {
         if (!(fp = fopen(path, "r"))) {
@@ -167,6 +180,7 @@ int main(int argc, char *argv[]) {
         result = false;
         goto done;
     }
+
     // vars
     if (use_env) {
         if (!vsub_UseVarsFromEnv(&sub)) {
@@ -175,6 +189,14 @@ int main(int argc, char *argv[]) {
             goto done;
         }
     }
+    if (vars.count) {
+        if (!vsub_UseVarsFromArgList(&sub, vars.count, vars.items)) {
+            printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
+            result = false;
+            goto done;
+        }
+    }
+
     // format
     int outfmt;
     if (!use_format) {
@@ -267,6 +289,7 @@ done:
 
     // --- finalize
 
+    arr_free(&vars);
     vsub_free(&sub);
     if (fp != stdin && fp != NULL) {
         fclose(fp);
