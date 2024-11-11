@@ -3,15 +3,15 @@
 #include "../vsubio.h"
 
 
-static const char *NAME = "arglist";
+static const char *NAME = "kvarray";
 
-typedef struct VsubVarsArglist {
+typedef struct VsubVarsKvarray {
     struct VsubVarsSrc super;
     const char **kv;
     int count;
-} VsubVarsArglist;
+} VsubVarsKvarray;
 
-static const char *_getvalue(VsubVarsArglist *src, const char *var) {
+static const char *_getvalue(VsubVarsKvarray *src, const char *var) {
     size_t len = strlen(var);
     for (int i = 0; i < src->count; i++) {
         if (strncmp(var, src->kv[i], len) == 0 && src->kv[i][len] == '=') {
@@ -21,8 +21,8 @@ static const char *_getvalue(VsubVarsArglist *src, const char *var) {
     return NULL;
 }
 
-bool vsub_UseVarsFromArgList(Vsub *sub, size_t c, const char *kv[]) {
-    VsubVarsArglist *src = malloc(sizeof(VsubVarsArglist));
+bool vsub_UseVarsFromKvarray(Vsub *sub, size_t c, const char *kv[]) {
+    VsubVarsKvarray *src = malloc(sizeof(VsubVarsKvarray));
     if (!src) {
         return false;
     }

@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (vars.count) {
-        if (!vsub_UseVarsFromArgList(&sub, vars.count, vars.items)) {
+        if (!vsub_UseVarsFromKvarray(&sub, vars.count, vars.items)) {
             printf_error(VSUB_ERRORS[-VSUB_ERR_MEMORY]);
             result = false;
             goto done;
