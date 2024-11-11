@@ -5,7 +5,11 @@ import pytest
     'input,result,vars', [
         ('plaintext', b'plaintext', ''),
         ('${VAR}iable', b'viable', '-v VAR=v'),
-        # todo: add more
+        ('$VAR-iable', b'v-iable', '-v VAR=v'),
+        ('$$VAR-iable', b'$VAR-iable', '-v VAR=v'),
+        ('${UNDEF}-ined', b'${UNDEF}-ined', ''),
+        ('${}plain', b'${}plain', ''),
+        ('${-}plain', b'${-}plain', ''),
     ]
 )
 def test_simple(exe, input, vars, result):

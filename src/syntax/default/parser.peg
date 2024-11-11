@@ -6,8 +6,10 @@
 }
 
 input <- atom* !.
-atom  <- '${' var:var '}'         { IF(Set) THEN(Value) ELSE(Input) }
-       / '$' var:var              { IF(Set) THEN(Value) ELSE(Input) }
+
+atom  <- '$$'                     { USE(Const("$")) }
+       / '${' v:var '}'           { IF(Set(v)) THEN(Value) ELSE(Input) }
+       / '$' v:var                { IF(Set(v)) THEN(Value) ELSE(Input) }
        / .                        { USE(Input) }
 
 var <- <[_a-zA-Z] [_a-zA-Z0-9]*>  { $$ = $1; }

@@ -50,22 +50,26 @@ typedef struct Auxil {
 #define PCC_ERROR(auxil) { ((Vsub*)auxil->sub)->err = VSUB_ERR_SYNTAX; return 0; }
 #define PCC_GETCHAR(auxil) auxil->getchar(auxil)
 
+
+// --- parser grammar helpers
+
 // actions
-#define use_Input auxil->append_orig(auxil, _0e, _0)
-#define use_Value auxil->append_subst(auxil, _0e, __val)
-#define use_Other auxil->append_subst(auxil, _0e, other)
-#define use_Error { auxil->append_error(auxil, _0e, var, errmsg); return 0; }
-#define USE(a) use_ ## a;
+#define _use_Input    { auxil->append_orig(auxil, _0e, _0); }
+#define _use_Const(s) { auxil->append_orig(auxil, _0e, s); }
+#define _use_Value    { auxil->append_subst(auxil, _0e, __tmp); }
+#define _use_Other(s) { auxil->append_subst(auxil, _0e, s); }
+#define _use_Error(e) { auxil->append_error(auxil, _0e, __tmp, e); return 0; }
+#define USE(a) _use_ ## a;
 
 // rules
-#define __get_Value const char *__val = auxil->getvalue(auxil, var)
-#define __is_Set (__val != NULL)
-#define __is_Empty (__val != NULL && strlen(__val) == 0)
-#define __is_Filled (__val != NULL && strlen(__val) >= 1)
-#define __is_Missing (__val == NULL || strlen(__val) == 0)
-#define IF(s) { __get_Value; if __is_ ## s
-#define THEN(a) use_ ## a;
-#define ELSE(a) else use_ ## a; }
+#define _get_Value(v)  const char *__tmp = auxil->getvalue(auxil, v)
+#define _if_Set(v)     _get_Value(v); if(__tmp != NULL)
+#define _if_Empty(v)   _get_Value(v); if(__tmp != NULL && strlen(__tmp) == 0)
+#define _if_Filled(v)  _get_Value(v); if(__tmp != NULL && strlen(__tmp) >= 1)
+#define _if_Missing(v) _get_Value(v); if(__tmp == NULL || strlen(__tmp) == 0)
+#define IF(s)   { _if_ ## s
+#define THEN(a) _use_ ## a
+#define ELSE(a) else _use_ ## a }
 
 
 #endif  // VSUB_AUX_H
