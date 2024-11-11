@@ -6,7 +6,8 @@ import pytest
 @pytest.mark.parametrize(
     'input,envvars,result', [
         ('${VAR}', {'VAR': 'value'}, b'value'),
-        ('${VAR}', {}, b''),  # undefined variable substitutes empty string
+        ('${VAR}', {'VAR': ''}, b''),  # empty var substitutes empty string
+        ('${VAR}', {}, b''),           # unset variable substitutes empty string
     ]
 )
 def test(tmp_path, input, envvars, result):
