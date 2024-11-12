@@ -34,9 +34,10 @@ tasks:
     vars: {SYNTAX: '{{index .MATCH 0}}'}
     label: 'research:{{.SYNTAX}}'
     sources:
+      - research/syntax.py
       - research/test_{{.SYNTAX}}.py
     cmds:
-      - docker compose run --rm research-{{.SYNTAX}} pytest test_{{.SYNTAX}}.py
+      - docker compose run --rm research-{{.SYNTAX}} pytest -x test_{{.SYNTAX}}.py
 
   clean:
     desc: Clean all builder artefacts.
