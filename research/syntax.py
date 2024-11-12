@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Callable, Iterable, assert_never
+from itertools import product
+from typing import Callable, ClassVar, Iterable, Self, assert_never
 
 import pytest
 from _pytest.mark import ParameterSet
@@ -9,6 +10,7 @@ from _pytest.mark import ParameterSet
 
 class VarAction(Enum):
     USE_ORIGINAL = auto()
+    USE_ESCAPED = auto()
     USE_EMPTY = auto()
     ERROR = auto()
 
@@ -16,6 +18,64 @@ class VarAction(Enum):
 class VarPattern(Enum):
     ASCII_IDENTIFIER = auto()
     UNICODE_IDENTIFIER = auto()
+
+
+@dataclass(kw_only=True)
+class Templates:
+    # var names
+    var_valid: list[str]    # valid var names
+    var_invalid: list[str]  # invalid var names
+    var_all: list[str]      # all var names to check
+    # dollar escape
+    esc_no: list[str]       # well-known dollar escape chars that are non-escapes here
+    esc_maybe: list[str]    # all characters to try as dollar escapes
+    # dollar atomic expressions
+    expr_named: ClassVar[str] = '${0}'
+    expr_braced: ClassVar[str] = '${{{0}}}'
+    expr_var: list[str]     # dollar str.format templates of valid variable expressions
+    expr_lit: list[str]     # dollar str.format templates that are not var expressions
+    expr_all: list[str]     # expr_var + exp_lit
+
+    @classmethod
+    def from_syntax(cls, synt: 'Syntax') -> Self:
+        # var names
+        ascii_ident = ['VAR_1', '_VAR', '_1VAR']
+        unicode_ident = ['ПРМ', '木']
+        digit = ['1VAR', '1']
+        special = ['-', '@', '}']  # "{" is special, add to tests to get more info from errors
+        match synt.var_pattern:
+            case VarPattern.ASCII_IDENTIFIER:
+                var_valid = ascii_ident
+                var_invalid = [*unicode_ident, *digit, *special]
+            case VarPattern.UNICODE_IDENTIFIER:
+                var_valid = [*ascii_ident, *unicode_ident]
+                var_invalid = [*digit, *special]
+            case _ as other:
+                assert_never(other)
+
+        # escape characters
+        esc_yes = [*((synt.dollar_escape,) or ())]
+        esc_maybe = ['$', '\\']
+        esc_no = [e for e in esc_maybe if e not in esc_yes]
+
+        # expressions
+        expr_var = [
+            *((cls.expr_named,) if synt.named_form else ()),
+            *((cls.expr_braced,) if synt.braced_form else ()),
+        ]
+        expr_lit = [e for e in (cls.expr_named, cls.expr_braced) if e not in expr_var]
+
+        # return
+        return cls(
+            var_valid=var_valid,
+            var_invalid=var_invalid,
+            var_all=var_valid + var_invalid,
+            esc_no=esc_no,
+            esc_maybe=esc_maybe,
+            expr_var=expr_var,
+            expr_lit=expr_lit,
+            expr_all=expr_var + expr_lit,
+        )
 
 
 @dataclass(kw_only=True)
@@ -29,75 +89,66 @@ class Syntax:
     var_invalid: VarAction         # behaviour if template contains invalid var name
     var_unset: VarAction           # behaviour if template contains unset var
     var_case_sensitive: bool       # var name is case-insensitive
-    skip: Sequence[Callable[[ParameterSet], bool]] | None = None
-    more: Sequence[Callable[[], Iterable[ParameterSet]]] | None = None
+    skip: Sequence[Callable[[ParameterSet], bool]] = ()
+    more: Sequence[Callable[[], Iterable[ParameterSet]]] = ()
+    # internals
+    T: Templates | None = None
 
     def __post_init__(self):
+        if self.T is None:
+            self.T = Templates.from_syntax(self)
+
         for feature, invalid_values in (
             ('dollar_literal', (VarAction.USE_EMPTY,)),
             ('var_invalid', ()),
-            ('var_unset', ()),
+            ('var_unset', (VarAction.USE_ESCAPED,)),
         ):
             value = getattr(self, feature)
             if value in invalid_values:
                 raise ValueError(f'{feature} value is invalid: {value}')
 
+        if not self.dollar_escape and (
+            self.dollar_literal == VarAction.USE_ESCAPED
+            or self.var_invalid == VarAction.USE_ESCAPED
+            or self.var_unset == VarAction.USE_ESCAPED
+        ):
+            raise ValueError('Invalid combination')
+
     def pytest_params(self) -> ParameterSet:
         # filter marked as skipped
-        if self.skip is None:
-            yield from self.cases()
-        else:
-            for param in self.cases():
-                if any(must_skip(param) for must_skip in self.skip):
-                    param.marks = (pytest.mark.skip(),)
-                yield param
+        for param in self.elementary_cases():
+            if any(must_skip(param) for must_skip in self.skip):
+                param.marks = (pytest.mark.skip(),)
+            yield param
         # add extras
-        if self.more:
-            for gen in self.more:
-                yield from gen()
+        for gen in self.more:
+            yield from gen()
 
-    def cases(self) -> Iterable[ParameterSet]:
-
-        # var_pattern, var_invalid
-        var_valid, var_invalid = self.var_names()
+    def elementary_cases(self) -> Iterable[ParameterSet]:
+        T = self.T
 
         # named_form, braced_form
-        for form, expr in (
-            (self.named_form, '${0}'),
-            (self.braced_form, '${{{0}}}'),
-        ):
-            for name in (*var_valid, *var_invalid):
-                case = Case(expr.format(name), {name: 'value'})
-                if form and name in var_valid:
-                    yield case.expect_value('value')
-                elif form and name in var_invalid:
-                    yield case.expect_action(self.var_invalid)
-                else:
-                    yield case.expect_action(self.dollar_literal)
+        for expr, name in product(T.expr_all, T.var_all):
+            c = Case(expr.format(name), {name: 'value'})
+            if expr in T.expr_var and name in T.var_valid:
+                yield c.expect_value('value')
+            elif expr == T.expr_braced and name in T.var_invalid:
+                yield c.expect_action(self.var_invalid, self)
+            else:
+                # dollar literal followed by non-varname characters
+                yield c.expect_action(self.dollar_literal, self)
 
         # dollar_escape
-        escapes = {*(self.dollar_escape or ()), '$', '\\'}
-        for form, expr in (
-            (self.named_form, '${0}'),
-            (self.braced_form, '${{{0}}}'),
-        ):
-            for name in (*var_valid, *var_invalid):
-                for esc in escapes:
-                    case = Case(f'{esc}{expr.format(name)}', {name: 'value'})
-                    if esc == self.dollar_escape:
-                        yield case.expect_input()
-                    elif esc != self.dollar_escape and name in var_valid:
-                        yield case.expect_value(f'{esc}value')
-                    elif esc != self.dollar_escape and name in var_invalid:
-                        match self.var_invalid:
-                            case VarAction.USE_ORIGINAL:
-                                yield case.expect_input()
-                            case VarAction.USE_EMPTY:
-                                yield case.expect_value(esc)
-                            case VarAction.ERROR:
-                                yield case.expect_action(self.var_invalid)
-                            case _ as unreachable:
-                                assert_never(unreachable)
+        for expr, name, esc in product(T.expr_all, T.var_all, T.esc_maybe):
+            c = Case(f'{esc}{expr.format(name)}', {name: 'value'})
+            if esc == self.dollar_escape:  # no_esc below
+                yield c.expect_input()
+            elif name in T.var_valid:  # var_invalid below
+                yield c.expect_value(f'{esc}value')
+            elif expr == T.expr_braced:
+                yield c.expect_action(self.var_invalid, self)
+            else:
+                yield c.expect_action(self.dollar_literal, self)
 
         # dollar_literal (middle, last), w/wo escape
 
@@ -107,34 +158,15 @@ class Syntax:
         # var_unset
 
         # var_case_sensitive
-        for form, expr in (
-            (self.named_form, '${0}'),
-            (self.braced_form, '${{{0}}}'),
-        ):
-            if not form:
-                continue  # unsupported forms were tested above
-            for name in var_valid:
-                for case in (
-                    Case(f'${name.upper()}', {name.lower(): 'value'}),
-                    Case(f'${name.lower()}', {name.upper(): 'value'}),
-                ):
-                    if self.var_case_sensitive:
-                        yield case.expect_action(self.var_unset)
-                    else:
-                        yield case.expect_value('value')
-
-    def var_names(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
-        ascii_ident = ('VAR_1', '_VAR', '_1VAR')
-        unicode_ident = ('ПРМ', '木')
-        digit = ('1VAR', '1')
-        special = ('-', '@', '}')  # "{" is special, add to tests to get more info
-        match self.var_pattern:
-            case VarPattern.ASCII_IDENTIFIER:
-                return (ascii_ident, (*unicode_ident, *digit, *special))
-            case VarPattern.UNICODE_IDENTIFIER:
-                return ((*ascii_ident, *unicode_ident), (*digit, *special))
-            case _:
-                assert_never(self.var_pattern)
+        for expr, name in product(T.expr_var, T.var_valid):
+            for case in (
+                Case(expr.format(name.upper()), {name.lower(): 'value'}),
+                Case(expr.format(name.lower()), {name.upper(): 'value'}),
+            ):
+                if self.var_case_sensitive:
+                    yield case.expect_action(self.var_unset, self)
+                else:
+                    yield case.expect_value('value')
 
 
 @dataclass
@@ -142,14 +174,21 @@ class Case:
     input: str
     vars: dict[str, str]
 
-    def expect_action(self, action: VarAction) -> pytest.param:
+    def expect_action(self, action: VarAction, synt: Syntax) -> pytest.param:
         match action:
             case VarAction.USE_ORIGINAL:
                 return self.expect_input()
+            case VarAction.USE_ESCAPED:
+                if '$' in self.input:
+                    return self.expect_value(
+                        self.input.replace('$', f'{synt.dollar_escape}$', 1)
+                    )
+                else:
+                    raise ValueError('not applicable here')
             case VarAction.USE_EMPTY:
                 return self.expect_value('')
             case VarAction.ERROR:
-                return self.expect_error(None)
+                return self.expect_error()
             case _:
                 assert_never(action)
 
@@ -159,6 +198,5 @@ class Case:
     def expect_value(self, value: str):
         return pytest.param(self.input, self.vars, value)
 
-    def expect_error(self, msg: str | None) -> pytest.param:
-        xfail = pytest.mark.xfail(msg) if msg else pytest.mark.xfail
-        return pytest.param(self.input, self.vars, None, marks=xfail)
+    def expect_error(self) -> pytest.param:
+        return pytest.param(self.input, self.vars, None)
