@@ -9,13 +9,13 @@ from syntax import Syntax, VarAction, VarPattern
 SYNTAX = Syntax(
     named_form=True,
     braced_form=True,
+    unclosed_brace=VarAction.ERROR,
     dollar_escape='$',
     dollar_literal=VarAction.USE_ESCAPED,
-    recursive_depth=float('Inf'),             # todo: proof required
     var_pattern=VarPattern.ASCII_IDENTIFIER,
+    var_case_sensitive=True,
     var_invalid=VarAction.ERROR,
     var_unset=VarAction.USE_EMPTY,
-    var_case_sensitive=True,
 )
 
 

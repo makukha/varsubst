@@ -8,13 +8,13 @@ from syntax import Syntax, VarAction, VarPattern
 SYNTAX = Syntax(
     named_form=True,
     braced_form=True,
+    unclosed_brace=VarAction.USE_ORIGINAL,
     dollar_escape=None,
     dollar_literal=VarAction.USE_ORIGINAL,
-    recursive_depth=0,
     var_pattern=VarPattern.ASCII_IDENTIFIER,
+    var_case_sensitive=True,
     var_invalid=VarAction.USE_ORIGINAL,
     var_unset=VarAction.USE_EMPTY,
-    var_case_sensitive=True,
 )
 
 
