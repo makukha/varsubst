@@ -1,5 +1,5 @@
 [project]
-name = "uv"
+name = "vsub"
 version = "0.2.0"
 description = "Bash-style variable substitution: Python wrapper for C library vsub."
 authors = [{name = "Michael Makukha", email = "m.makukha@gmail.com"}]
