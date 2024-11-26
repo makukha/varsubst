@@ -12,6 +12,7 @@ tasks:
     cmds:
       - task: docker:build
       - docker compose run --rm dev
+      - defer: docker compose down
 
   docker:build:
     internal: true
@@ -20,6 +21,7 @@ tasks:
       - .dev/Dockerfile
       - .dev/compose.yaml
       - .dev/requirements-dev.txt
+      - .dev/requirements-doc.txt
       - .dev/requirements-res.txt
     cmds:
       - docker compose build
@@ -67,6 +69,11 @@ tasks:
     cmds:
       - task: build:debug
       - gdb --tui build-debug/vsub
+
+  docs:
+    desc: Build docs.
+    cmds:
+      - sphinx-build -M html docs docs/_build
 
   setup:wrapdb:
     internal: true

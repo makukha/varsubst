@@ -34,13 +34,14 @@ rm -rf /tmp/* /var/tmp/*
 EOT
 
 WORKDIR /build
-COPY requirements-dev.txt ./
+COPY requirements-dev.txt requirements-doc.txt ./
 
 RUN --mount=type=cache,dst=/root/.cache/pip \
-    pip install -r requirements-dev.txt
+    pip install -r requirements-dev.txt -r requirements-doc.txt
 
 VOLUME /root/.ccache
 ENTRYPOINT []
+CMD ["/bin/bash", "-i"]
 
 # syntax research targets
 
