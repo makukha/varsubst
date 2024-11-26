@@ -4,7 +4,7 @@ import os
 project = 'vsub'
 copyright = '2024, Michael Makukha'
 author = 'Michael Makukha'
-release = '0.1.0'
+release = '0.2.0'
 
 extensions = [
     'myst_parser',

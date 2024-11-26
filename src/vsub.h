@@ -1,7 +1,7 @@
 #ifndef VSUB_H
 #define VSUB_H
 
-#define VSUB_VERSION "0.1.0"
+#define VSUB_VERSION "0.2.0"
 
 #ifdef _WIN32
   #define VSUB_EXPORT __declspec(dllexport)

@@ -1,6 +1,6 @@
 project(
     'vsub', 'c',
-    version: '0.1.0',
+    version: '0.2.0',
     license: 'MIT',
     license_files: ['LICENSE'],
     default_options: ['c_std=c99'],
