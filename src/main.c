@@ -40,7 +40,7 @@ static void print_usage() {
         "usage: vsub [options] [path]\n"
         "  options:\n"
         "    -e, --env         use environment variables\n"
-        "    -E, --envsubst    same as '--env --syntax=ggenv'\n"
+        "    -E, --envsubst    same as '--env --syntax=genv'\n"
         "    -f, --format=STR  set output format; default: pretty if -d else plain\n"
         "    -d, --detailed    add extended details\n"
         "    -s, --syntax=STR  set syntax to use; default: 'default'\n"
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'E':
                 use_env = true;
-                use_syntax = "ggenv";
+                use_syntax = "genv";
                 break;
             case 'f':
                 use_format = optarg;

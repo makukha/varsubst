@@ -28,7 +28,7 @@ VSUB_EXPORT const VsubSyntax *vsub_FindSyntax(const char *name);  // find by nam
 
 #define VSUB_SX_DEFAULT 0
 #define VSUB_SX_DC243 1
-#define VSUB_SX_GGENV 2
+#define VSUB_SX_GENV 2
 
 extern const VsubSyntax VSUB_SYNTAXES[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAXES_COUNT;
