@@ -1,5 +1,6 @@
 --*
 /build*/
+/docs/_build/
 __pycache__/
 /subprojects/
 /.task/

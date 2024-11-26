@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import json
-from itertools import chain
 from pathlib import Path
 import subprocess
 from subprocess import getoutput
@@ -61,5 +60,5 @@ def exe(build) -> Executable:
         home=build.dir,
         version=build.projectinfo['version'],
         formats=[p.stem for p in (build.src / 'output').glob('*.c')],
-        syntaxes=[p.name for p in (build.src / 'syntax').iterdir() if p.is_dir()],
+        syntaxes=[p.stem for p in (build.src / 'syntax').glob('*.peg')],
     )

@@ -21,9 +21,9 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 #endif /* defined __GNUC__ && defined _WIN32 */
 #endif /* !_MSC_VER */
 
-#include "parser.h"
+#include "envsubst.h"
 
-#include "../../aux.h"
+#include "../aux.h"
 
 #if !defined __has_attribute || defined _MSC_VER
 #define __attribute__(x)
@@ -79,7 +79,7 @@ typedef const char *pcc_value_t;
 
 typedef Auxil *pcc_auxil_t;
 
-typedef vsub_sx_default_context_t pcc_context_t;
+typedef vsub_sx_envsubst_context_t pcc_context_t;
 
 typedef struct pcc_value_table_tag {
     pcc_value_t *buf;
@@ -249,7 +249,7 @@ typedef struct pcc_memory_recycler_tag {
     size_t element_size;
 } pcc_memory_recycler_t;
 
-struct vsub_sx_default_context_tag {
+struct vsub_sx_envsubst_context_tag {
     size_t pos; /* the position in the input of the first character currently buffered */
     size_t cur; /* the current parsing position in the character buffer */
     size_t level;
@@ -1126,7 +1126,7 @@ static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, p
     }
 }
 
-static void pcc_action_atom_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_0(vsub_sx_envsubst_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1140,7 +1140,7 @@ static void pcc_action_atom_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_atom_1(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_1(vsub_sx_envsubst_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define v (*__pcc_in->data.leaf.values.buf[0])
@@ -1156,7 +1156,7 @@ static void pcc_action_atom_1(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_atom_2(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_2(vsub_sx_envsubst_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define v (*__pcc_in->data.leaf.values.buf[0])
@@ -1172,7 +1172,7 @@ static void pcc_action_atom_2(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_atom_3(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_3(vsub_sx_envsubst_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1186,7 +1186,7 @@ static void pcc_action_atom_3(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_var_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_var_0(vsub_sx_envsubst_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1411,11 +1411,11 @@ L0000:;
     return NULL;
 }
 
-vsub_sx_default_context_t *vsub_sx_default_create(Auxil *auxil) {
+vsub_sx_envsubst_context_t *vsub_sx_envsubst_create(Auxil *auxil) {
     return pcc_context__create(auxil);
 }
 
-int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret) {
+int vsub_sx_envsubst_parse(vsub_sx_envsubst_context_t *ctx, const char **ret) {
     if (pcc_refill_buffer(ctx, 1) < 1) return 0;
     if (pcc_apply_rule(ctx, pcc_evaluate_rule_input, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);
@@ -1426,6 +1426,6 @@ int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret) {
     return 1;
 }
 
-void vsub_sx_default_destroy(vsub_sx_default_context_t *ctx) {
+void vsub_sx_envsubst_destroy(vsub_sx_envsubst_context_t *ctx) {
     pcc_context__destroy(ctx);
 }

@@ -3,7 +3,8 @@
 #include "aux.h"
 #include "vsub.h"
 #include "vsubio.h"
-#include "syntax/default/parser.h"
+#include "syntax/compose243.h"
+#include "syntax/envsubst.h"
 
 
 // --- syntaxes
@@ -15,15 +16,13 @@
 }
 
 const VsubSyntax VSUB_SYNTAXES[] = {
-    {0, "default", "simple direct substitution"},
-    {1, "dc243",   "Docker Compose v2.4.3"},
-//    {2, "ggenv",   "GNU gettext envsubst"},
+    {1, "compose243", "Docker Compose v2.4.3"},   // 0 = VSUB_SX_COMPOSE243
+    {0, "envsubst", "GNU gettext envsubst"},      // 1 = VSUB_SX_ENVSUBST
 };
 
 const VsubParser VSUB_PARSERS[] = {
-    PARSER(vsub_sx_default),
-    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_dc243)
-//    PARSER(vsub_sx_default),  // todo: replace with PARSER(vsub_sx_ggenv)
+    PARSER(vsub_sx_compose243),                   // 0 = VSUB_SX_COMPOSE243
+    PARSER(vsub_sx_envsubst),                     // 1 = VSUB_SX_ENVSUBST
 };
 
 const size_t VSUB_SYNTAXES_COUNT = sizeof(VSUB_SYNTAXES) / sizeof(VSUB_SYNTAXES[0]);
@@ -206,7 +205,7 @@ static void vsub_clear_results(Vsub *sub) {
 
 bool vsub_init(Vsub *sub) {
     // vsub params
-    sub->syntax = &VSUB_SYNTAXES[VSUB_SX_DEFAULT];
+    sub->syntax = &VSUB_SYNTAXES[VSUB_SX_ENVSUBST];
     sub->depth = 1;
     sub->maxinp = 0;
     sub->maxres = 0;

@@ -1,25 +1,38 @@
+name: vsub
+
 services:
 
   dev:
     build:
       context: .
       target: dev
-    hostname: vsub-dev
+    hostname: vsub
     stdin_open: true
     tty: true
     volumes:
       - ccache_data:/root/.ccache
       - ../:/build
 
-  research-dc243:
+  # syntax research targets
+
+  research-compose243:
     build:
       context: .
-      target: research-dc243
+      target: research-compose243
     stdin_open: true
     tty: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../research/test_dc243.py:/research/test_dc243.py:ro
+      - ../research:/research
+
+  research-envsubst:
+    build:
+      context: .
+      target: research-envsubst
+    stdin_open: true
+    tty: true
+    volumes:
+      - ../research:/research
 
 volumes:
   ccache_data:

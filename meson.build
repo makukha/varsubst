@@ -1,10 +1,10 @@
 project(
     'vsub', 'c',
-    version: '0.1.0',
+    version: '0.2.0',
     license: 'MIT',
     license_files: ['LICENSE'],
     default_options: ['c_std=c99'],
-    meson_version: '>=0.60.0',
+    meson_version: '>=1.1.0',
 )
 add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
 
@@ -22,7 +22,8 @@ src = files(
     'src/output/json.c',
     'src/output/plain.c',
     'src/output/pretty.c',
-    'src/syntax/default/parser.c',
+    'src/syntax/compose243.c',
+    'src/syntax/envsubst.c',
 )
 deps = [
     dependency('libcjson', version: '>=1.7.18', static: true),

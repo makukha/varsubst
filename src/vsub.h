@@ -1,7 +1,7 @@
 #ifndef VSUB_H
 #define VSUB_H
 
-#define VSUB_VERSION "0.1.0"
+#define VSUB_VERSION "0.2.0"
 
 #ifdef _WIN32
   #define VSUB_EXPORT __declspec(dllexport)
@@ -26,9 +26,8 @@ typedef struct VsubSyntax {
 
 VSUB_EXPORT const VsubSyntax *vsub_FindSyntax(const char *name);  // find by name
 
-#define VSUB_SX_DEFAULT 0
-#define VSUB_SX_DC243 1
-#define VSUB_SX_GGENV 2
+#define VSUB_SX_COMPOSE243 0
+#define VSUB_SX_ENVSUBST 1
 
 extern const VsubSyntax VSUB_SYNTAXES[];  // using VSUB_SX_* as indexes
 extern const size_t VSUB_SYNTAXES_COUNT;
@@ -38,15 +37,15 @@ extern const size_t VSUB_SYNTAXES_COUNT;
 
 typedef struct Vsub {
     // params
-    const VsubSyntax *syntax;  // one of VSUB_SX_*; 0 by default
+    const VsubSyntax *syntax;  // default: VSUB_SX_ENVSUBST
     char depth;     // max subst iter count; default: 1
-    size_t maxinp;  // max length of input string; unlim if set to 0
-    size_t maxres;  // max length of result string; unlim if set to 0
+    size_t maxinp;  // max length of input string; unlimited if set to 0
+    size_t maxres;  // max length of result string; unlimited if set to 0
     // result
-    char *res;      // result string; points to input if plain=1 and copyplain=0
+    char *res;      // result string
     int err;        // see error/success flags
-    char *errvar;   // first variable name with error; NULL by default
-    char *errmsg;   // variable error message; NULL by default
+    char *errvar;   // first variable name with error; default: NULL
+    char *errmsg;   // variable error message; default: NULL
     bool trunc;     // whether result string was truncated because of maxinp or maxres
     size_t gcac;    // input bytes requested
     size_t gcbc;    // input bytes returned other than EOF

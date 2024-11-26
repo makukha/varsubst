@@ -1,8 +1,8 @@
-%prefix "vsub_sx_default"
+%prefix "vsub_sx_envsubst"
 %auxil "Auxil *"
 %value "const char *"
 %common {
-#include "../../aux.h"
+#include "../aux.h"
 }
 
 input <- atom* !.

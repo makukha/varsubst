@@ -1,0 +1,15 @@
+%prefix "vsub_sx_compose243"
+%auxil "Auxil *"
+%value "const char *"
+%common {
+#include "../aux.h"
+}
+
+input <- atom* !.
+
+atom  <- '$$'            { USE(Const("$")) }
+       / '${' v:var '}'  { IF(Set(v)) THEN(Value) ELSE(Input) }
+       / '$' v:var       { IF(Set(v)) THEN(Value) ELSE(Const("")) }
+       / .               { USE(Input) }
+
+var <- <[_a-zA-Z] [_a-zA-Z0-9]*>  { $$ = $1; }

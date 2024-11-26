@@ -5,56 +5,64 @@ env:
 
 tasks:
 
-  # --- host ---
+  # dev environment
 
   dev:
     desc: Run dev environment.
-    vars: {CMD: '{{if .CLI_ARGS}}task {{.CLI_ARGS}}{{else}}bash -i{{end}}'}
     cmds:
-      - task: dev:build
-      - docker compose run --rm dev {{.CMD}}
+      - task: docker:build
+      - docker compose run --rm dev
+      - defer: docker compose down
 
-  dev:build:
+  docker:build:
     internal: true
+    run: once
     sources:
       - .dev/Dockerfile
       - .dev/compose.yaml
-      - .dev/requirements.txt
+      - .dev/requirements-dev.txt
+      - .dev/requirements-doc.txt
+      - .dev/requirements-res.txt
     cmds:
       - docker compose build
+
+  # host commands
 
   research:
     desc: Test original syntax implementations.
     cmds:
-      - task: research:dc243
+      - task: research:compose243
+      - task: research:envsubst
 
   research:*:
-    internal: true
     vars: {SYNTAX: '{{index .MATCH 0}}'}
-    sources: ['research/test_{{.SYNTAX}}.py']
+    label: 'research:{{.SYNTAX}}'
+    sources:
+      - research/syntax.py
+      - research/test_{{.SYNTAX}}.py
     cmds:
-      - task: dev:build
-      - docker compose run --rm research-{{.SYNTAX}}
+      - task: docker:build
+      - docker compose run --rm research-{{.SYNTAX}} pytest -x test_{{.SYNTAX}}.py
 
   clean:
     desc: Clean all builder artefacts.
     cmds:
-      - rm -rf build-* subprojects
-      - docker compose down --rmi local --volumes
+      - rm -rf build* docs/_build subprojects src/syntax/*.{c,h} .task
+      - cmd: docker compose down --rmi local --volumes
+        ignore_error: true  # can be called in container
 
-  # --- guest ---
+  # dev commands
 
-  run:
-    desc: Run target executable.
-    vars: {BTYPE: release}
+  compile:
+    desc: Compile and install release target.
     cmds:
       - task: build:release
-      - build-{{.BTYPE}}/vsub {{.CLI_ARGS}}
+      - meson install -C build-release
 
   test:
     desc: Run tests.
     cmds:
-      - task: build:release
+      - task: compile
       - pytest -x tests
 
   debug:
@@ -63,31 +71,15 @@ tasks:
       - task: build:debug
       - gdb --tui build-debug/vsub
 
-  build:
-    desc: Build debug and release.
+  docs:
+    desc: Build docs.
     cmds:
-      - task: build:release
-
-  build:*:
-    desc: Build debug or release.
-    vars: {BTYPE: '{{index .MATCH 0}}'}
-    cmds:
-      - task: setup:wrapdb
-      - task: setup:build:{{.BTYPE}}
-      - task: prebuild:parsers
-      - meson compile -C build-{{.BTYPE}}
-      - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
-
-  version:
-    desc: Bump project version, $ task version -- bump minor
-    cmds:
-      - bump-my-version {{.CLI_ARGS}}
-
-  # setup steps
+      - sphinx-build -M html docs docs/_build
 
   setup:wrapdb:
     internal: true
     status:
+      - test -d subprojects/packagecache
       - test -f subprojects/wrapdb.json
     cmds:
       - meson wrap update-db
@@ -100,11 +92,29 @@ tasks:
     cmds:
       - meson setup build-{{.BTYPE}} --buildtype={{.BTYPE}}
 
-  # prebuild steps
-
-  prebuild:parsers:
+  build:*:
     internal: true
-    sources: [src/syntax/*/parser.peg]
+    vars: {BTYPE: '{{index .MATCH 0}}'}
     cmds:
-      - cmd: packcc {{.ITEM}}
-        for: sources
+      - task: generate:parser:compose243
+      - task: generate:parser:envsubst
+      - task: setup:wrapdb
+      - task: setup:build:{{.BTYPE}}
+      - meson compile -C build-{{.BTYPE}}
+
+  # generate
+
+  generate:parser:*:
+    internal: true
+    vars: {SYNTAX: '{{index .MATCH 0}}'}
+    status:
+      - test src/syntax/{{.SYNTAX}}.h -nt src/syntax/{{.SYNTAX}}.peg
+    cmds:
+      - packcc src/syntax/{{.SYNTAX}}.peg
+
+  # release
+
+  version:
+    desc: Bump project version > task version -- bump minor
+    cmds:
+      - bump-my-version bump {{.CLI_ARGS}}

@@ -21,9 +21,9 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 #endif /* defined __GNUC__ && defined _WIN32 */
 #endif /* !_MSC_VER */
 
-#include "parser.h"
+#include "compose243.h"
 
-#include "../../aux.h"
+#include "../aux.h"
 
 #if !defined __has_attribute || defined _MSC_VER
 #define __attribute__(x)
@@ -79,7 +79,7 @@ typedef const char *pcc_value_t;
 
 typedef Auxil *pcc_auxil_t;
 
-typedef vsub_sx_default_context_t pcc_context_t;
+typedef vsub_sx_compose243_context_t pcc_context_t;
 
 typedef struct pcc_value_table_tag {
     pcc_value_t *buf;
@@ -249,7 +249,7 @@ typedef struct pcc_memory_recycler_tag {
     size_t element_size;
 } pcc_memory_recycler_t;
 
-struct vsub_sx_default_context_tag {
+struct vsub_sx_compose243_context_tag {
     size_t pos; /* the position in the input of the first character currently buffered */
     size_t cur; /* the current parsing position in the character buffer */
     size_t level;
@@ -1126,7 +1126,7 @@ static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, p
     }
 }
 
-static void pcc_action_atom_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_0(vsub_sx_compose243_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1140,9 +1140,10 @@ static void pcc_action_atom_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_atom_1(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_1(vsub_sx_compose243_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
+#define v (*__pcc_in->data.leaf.values.buf[0])
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
 #define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
 #define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
@@ -1150,11 +1151,12 @@ static void pcc_action_atom_1(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef _0e
 #undef _0s
 #undef _0
+#undef v
 #undef __
 #undef auxil
 }
 
-static void pcc_action_atom_2(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_2(vsub_sx_compose243_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define v (*__pcc_in->data.leaf.values.buf[0])
@@ -1170,7 +1172,7 @@ static void pcc_action_atom_2(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_atom_3(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_atom_3(vsub_sx_compose243_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1184,23 +1186,7 @@ static void pcc_action_atom_3(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t 
 #undef auxil
 }
 
-static void pcc_action_braced_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
-#define auxil (__pcc_ctx->auxil)
-#define __ (*__pcc_out)
-#define v (*__pcc_in->data.leaf.values.buf[0])
-#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
-#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
-#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
-    IF(Set(v)) THEN(Value) ELSE(Const(""))
-#undef _0e
-#undef _0s
-#undef _0
-#undef v
-#undef __
-#undef auxil
-}
-
-static void pcc_action_var_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_var_0(vsub_sx_compose243_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
 #define __ (*__pcc_out)
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
@@ -1222,7 +1208,6 @@ static void pcc_action_var_0(vsub_sx_default_context_t *__pcc_ctx, pcc_thunk_t *
 
 static pcc_thunk_chunk_t *pcc_evaluate_rule_input(pcc_context_t *ctx);
 static pcc_thunk_chunk_t *pcc_evaluate_rule_atom(pcc_context_t *ctx);
-static pcc_thunk_chunk_t *pcc_evaluate_rule_braced(pcc_context_t *ctx);
 static pcc_thunk_chunk_t *pcc_evaluate_rule_var(pcc_context_t *ctx);
 
 static pcc_thunk_chunk_t *pcc_evaluate_rule_input(pcc_context_t *ctx) {
@@ -1293,9 +1278,20 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_atom(pcc_context_t *ctx) {
     L0002:;
         ctx->cur = p;
         pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
-        if (!pcc_apply_rule(ctx, pcc_evaluate_rule_braced, &chunk->thunks, NULL)) goto L0003;
+        if (
+            pcc_refill_buffer(ctx, 1) < 1 || (ctx->buffer.buf + ctx->cur)[0] != '$' ||
+            pcc_refill_buffer(ctx, 2) < 2 || (ctx->buffer.buf + ctx->cur)[1] != '{'
+        ) goto L0003;
+        ctx->cur += 2;
+        if (!pcc_apply_rule(ctx, pcc_evaluate_rule_var, &chunk->thunks, &(chunk->values.buf[0]))) goto L0003;
+        if (
+            pcc_refill_buffer(ctx, 1) < 1 ||
+            ctx->buffer.buf[ctx->cur] != '}'
+        ) goto L0003;
+        ctx->cur++;
         {
             pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_atom_1, 1, 0);
+            thunk->data.leaf.values.buf[0] = &(chunk->values.buf[0]);
             thunk->data.leaf.capt0.range.start = chunk->pos;
             thunk->data.leaf.capt0.range.end = ctx->cur;
             pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
@@ -1346,41 +1342,6 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_atom(pcc_context_t *ctx) {
 L0000:;
     ctx->level--;
     PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "atom", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
-    pcc_thunk_chunk__destroy(ctx, chunk);
-    return NULL;
-}
-
-static pcc_thunk_chunk_t *pcc_evaluate_rule_braced(pcc_context_t *ctx) {
-    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
-    chunk->pos = ctx->cur;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "braced", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
-    ctx->level++;
-    pcc_value_table__resize(ctx->auxil, &chunk->values, 1);
-    pcc_value_table__clear(ctx->auxil, &chunk->values);
-    if (
-        pcc_refill_buffer(ctx, 1) < 1 || (ctx->buffer.buf + ctx->cur)[0] != '$' ||
-        pcc_refill_buffer(ctx, 2) < 2 || (ctx->buffer.buf + ctx->cur)[1] != '{'
-    ) goto L0000;
-    ctx->cur += 2;
-    if (!pcc_apply_rule(ctx, pcc_evaluate_rule_var, &chunk->thunks, &(chunk->values.buf[0]))) goto L0000;
-    if (
-        pcc_refill_buffer(ctx, 1) < 1 ||
-        ctx->buffer.buf[ctx->cur] != '}'
-    ) goto L0000;
-    ctx->cur++;
-    {
-        pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_braced_0, 1, 0);
-        thunk->data.leaf.values.buf[0] = &(chunk->values.buf[0]);
-        thunk->data.leaf.capt0.range.start = chunk->pos;
-        thunk->data.leaf.capt0.range.end = ctx->cur;
-        pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
-    }
-    ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "braced", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
-    return chunk;
-L0000:;
-    ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "braced", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
     pcc_thunk_chunk__destroy(ctx, chunk);
     return NULL;
 }
@@ -1450,11 +1411,11 @@ L0000:;
     return NULL;
 }
 
-vsub_sx_default_context_t *vsub_sx_default_create(Auxil *auxil) {
+vsub_sx_compose243_context_t *vsub_sx_compose243_create(Auxil *auxil) {
     return pcc_context__create(auxil);
 }
 
-int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret) {
+int vsub_sx_compose243_parse(vsub_sx_compose243_context_t *ctx, const char **ret) {
     if (pcc_refill_buffer(ctx, 1) < 1) return 0;
     if (pcc_apply_rule(ctx, pcc_evaluate_rule_input, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);
@@ -1465,6 +1426,6 @@ int vsub_sx_default_parse(vsub_sx_default_context_t *ctx, const char **ret) {
     return 1;
 }
 
-void vsub_sx_default_destroy(vsub_sx_default_context_t *ctx) {
+void vsub_sx_compose243_destroy(vsub_sx_compose243_context_t *ctx) {
     pcc_context__destroy(ctx);
 }
