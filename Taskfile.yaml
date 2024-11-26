@@ -62,7 +62,7 @@ tasks:
   test:
     desc: Run tests.
     cmds:
-      - task: build:release
+      - task: compile
       - pytest -x tests
 
   debug:
@@ -79,6 +79,7 @@ tasks:
   setup:wrapdb:
     internal: true
     status:
+      - test -d subprojects/packagecache
       - test -f subprojects/wrapdb.json
     cmds:
       - meson wrap update-db
