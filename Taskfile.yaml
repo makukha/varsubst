@@ -117,4 +117,4 @@ tasks:
   version:
     desc: Bump project version > task version -- bump minor
     cmds:
-      - bump-my-version {{.CLI_ARGS}}
+      - bump-my-version bump {{.CLI_ARGS}}
