@@ -13,20 +13,20 @@ services:
 
   # syntax research targets
 
-  research-dc243:
+  research-compose243:
     build:
       context: .
-      target: research-dc243
+      target: research-compose243
     stdin_open: true
     tty: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../research:/research
 
-  research-genv:
+  research-envsubst:
     build:
       context: .
-      target: research-genv
+      target: research-envsubst
     stdin_open: true
     tty: true
     volumes:

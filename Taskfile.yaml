@@ -31,8 +31,8 @@ tasks:
   research:
     desc: Test original syntax implementations.
     cmds:
-      - task: research:dc243
-      - task: research:genv
+      - task: research:compose243
+      - task: research:envsubst
 
   research:*:
     vars: {SYNTAX: '{{index .MATCH 0}}'}
@@ -47,8 +47,9 @@ tasks:
   clean:
     desc: Clean all builder artefacts.
     cmds:
-      - rm -rf build-* subprojects
-      - docker compose down --rmi local --volumes
+      - rm -rf build* docs/_build subprojects src/syntax/*.{c,h} .task
+      - cmd: docker compose down --rmi local --volumes
+        ignore_error: true  # can be called in container
 
   # dev commands
 
@@ -61,7 +62,7 @@ tasks:
   test:
     desc: Run tests.
     cmds:
-      - task: build:debug
+      - task: build:release
       - pytest -x tests
 
   debug:
@@ -94,19 +95,21 @@ tasks:
     internal: true
     vars: {BTYPE: '{{index .MATCH 0}}'}
     cmds:
+      - task: generate:parser:compose243
+      - task: generate:parser:envsubst
       - task: setup:wrapdb
       - task: setup:build:{{.BTYPE}}
-      - task: generate:parsers
       - meson compile -C build-{{.BTYPE}}
 
   # generate
 
-  generate:parsers:
+  generate:parser:*:
     internal: true
-    sources: [src/syntax/*/parser.peg]
+    vars: {SYNTAX: '{{index .MATCH 0}}'}
+    status:
+      - test src/syntax/{{.SYNTAX}}.h -nt src/syntax/{{.SYNTAX}}.peg
     cmds:
-      - cmd: packcc {{.ITEM}}
-        for: sources
+      - packcc src/syntax/{{.SYNTAX}}.peg
 
   # release
 

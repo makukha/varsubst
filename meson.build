@@ -22,7 +22,8 @@ src = files(
     'src/output/json.c',
     'src/output/plain.c',
     'src/output/pretty.c',
-    'src/syntax/default/parser.c',
+    'src/syntax/compose243.c',
+    'src/syntax/envsubst.c',
 )
 deps = [
     dependency('libcjson', version: '>=1.7.18', static: true),

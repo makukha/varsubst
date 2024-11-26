@@ -56,7 +56,7 @@ ENTRYPOINT []
 CMD ["/bin/bash", "-i"]
 
 # Docker Compose v2.4.3
-FROM research AS research-dc243
+FROM research AS research-compose243
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
 <<EOT
@@ -74,7 +74,7 @@ apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin
 EOT
 
 # GNU envsubst
-FROM research AS research-genv
+FROM research AS research-envsubst
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
 <<EOT

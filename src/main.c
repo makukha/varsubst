@@ -40,10 +40,9 @@ static void print_usage() {
         "usage: vsub [options] [path]\n"
         "  options:\n"
         "    -e, --env         use environment variables\n"
-        "    -E, --envsubst    same as '--env --syntax=genv'\n"
         "    -f, --format=STR  set output format; default: pretty if -d else plain\n"
         "    -d, --detailed    add extended details\n"
-        "    -s, --syntax=STR  set syntax to use; default: 'default'\n"
+        "    -s, --syntax=STR  set syntax to use; default: envsubst\n"
         "    -v, --var=KEY=VAL set substitution variable; takes highest priority\n"
         "        --formats     list supported output formats\n"
         "        --syntaxes    list supported syntaxes\n"
@@ -56,11 +55,10 @@ static void print_usage() {
 #define VSUB_OPT_FORMATS 1001
 #define VSUB_OPT_SYNTAXES 1002
 
-static const char *shortopts = "-hdeEf:s:v:";
+static const char *shortopts = "-hdef:s:v:";
 static struct option longopts[] = {
     {"detailed", no_argument, 0, 'd'},
     {"env", no_argument, 0, 'e'},
-    {"envsubst", no_argument, 0, 'E'},
     {"format", required_argument, 0, 'f'},
     {"formats", no_argument, 0, VSUB_OPT_FORMATS},
     {"syntax", required_argument, 0, 's'},
@@ -78,7 +76,7 @@ int main(int argc, char *argv[]) {
     bool use_detailed = false;
     bool use_env = false;
     char *use_format = NULL;
-    char *use_syntax = "default";
+    char *use_syntax = "envsubst";
     PtrArray vars;
     arr_init(&vars);
     char *path = NULL;
@@ -106,10 +104,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 'e':
                 use_env = true;
-                break;
-            case 'E':
-                use_env = true;
-                use_syntax = "genv";
                 break;
             case 'f':
                 use_format = optarg;
