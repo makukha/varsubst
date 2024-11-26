@@ -50,17 +50,16 @@ tasks:
 
   # dev commands
 
-  run:
-    desc: Run target executable.
-    vars: {BTYPE: release}
+  compile:
+    desc: Compile and install release target.
     cmds:
       - task: build:release
-      - build-{{.BTYPE}}/vsub {{.CLI_ARGS}}
+      - meson install -C build-release
 
   test:
     desc: Run tests.
     cmds:
-      - task: build:release
+      - task: build:debug
       - pytest -x tests
 
   debug:
@@ -68,38 +67,6 @@ tasks:
     cmds:
       - task: build:debug
       - gdb --tui build-debug/vsub
-
-  build:
-    desc: Build debug and release.
-    cmds:
-      - task: build:release
-      # if debug is needed, build with build:debug
-
-  build:*:
-    desc: Build debug or release.
-    vars: {BTYPE: '{{index .MATCH 0}}'}
-    cmds:
-      - task: setup:wrapdb
-      - task: setup:build:{{.BTYPE}}
-      - task: generate:parsers
-      - meson compile -C build-{{.BTYPE}}
-      - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
-
-  version:
-    desc: Bump project version > task version -- bump minor
-    cmds:
-      - bump-my-version {{.CLI_ARGS}}
-
-  # generate
-
-  generate:parsers:
-    internal: true
-    sources: [src/syntax/*/parser.peg]
-    cmds:
-      - cmd: packcc {{.ITEM}}
-        for: sources
-
-  # setup steps
 
   setup:wrapdb:
     internal: true
@@ -115,3 +82,28 @@ tasks:
     generates: ['build-{{.BTYPE}}/**/*']
     cmds:
       - meson setup build-{{.BTYPE}} --buildtype={{.BTYPE}}
+
+  build:*:
+    internal: true
+    vars: {BTYPE: '{{index .MATCH 0}}'}
+    cmds:
+      - task: setup:wrapdb
+      - task: setup:build:{{.BTYPE}}
+      - task: generate:parsers
+      - meson compile -C build-{{.BTYPE}}
+
+  # generate
+
+  generate:parsers:
+    internal: true
+    sources: [src/syntax/*/parser.peg]
+    cmds:
+      - cmd: packcc {{.ITEM}}
+        for: sources
+
+  # release
+
+  version:
+    desc: Bump project version > task version -- bump minor
+    cmds:
+      - bump-my-version {{.CLI_ARGS}}
