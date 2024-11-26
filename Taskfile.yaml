@@ -118,3 +118,12 @@ tasks:
     desc: Bump project version > task version -- bump minor
     cmds:
       - bump-my-version bump {{.CLI_ARGS}}
+
+  release:
+    desc: Publish package on PyPi.
+    preconditions:
+      - test $(git rev-parse --abbrev-ref HEAD) = main
+    cmds:
+      - rm -rf dist
+      - uv build
+      - uv publish

@@ -11,3 +11,4 @@ rich
 
 # releasing
 bump-my-version
+uv
