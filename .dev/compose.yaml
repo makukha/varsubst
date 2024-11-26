@@ -4,12 +4,14 @@ services:
     build:
       context: .
       target: dev
-    hostname: vsub-dev
+    hostname: vsub
     stdin_open: true
     tty: true
     volumes:
       - ccache_data:/root/.ccache
       - ../:/build
+
+  # syntax research targets
 
   research-dc243:
     build:

@@ -5,28 +5,30 @@ env:
 
 tasks:
 
-  # --- host ---
+  # dev environment
 
   dev:
     desc: Run dev environment.
-    vars: {CMD: '{{if .CLI_ARGS}}task {{.CLI_ARGS}}{{else}}bash -i{{end}}'}
     cmds:
-      - task: dev:build
-      - docker compose run --rm dev {{.CMD}}
+      - task: docker:build
+      - docker compose run --rm dev
 
-  dev:build:
+  docker:build:
     internal: true
+    run: once
     sources:
       - .dev/Dockerfile
       - .dev/compose.yaml
-      - .dev/requirements.txt
+      - .dev/requirements-dev.txt
+      - .dev/requirements-res.txt
     cmds:
       - docker compose build
+
+  # host commands
 
   research:
     desc: Test original syntax implementations.
     cmds:
-      - task: dev:build
       - task: research:dc243
       - task: research:genv
 
@@ -37,6 +39,7 @@ tasks:
       - research/syntax.py
       - research/test_{{.SYNTAX}}.py
     cmds:
+      - task: docker:build
       - docker compose run --rm research-{{.SYNTAX}} pytest -x test_{{.SYNTAX}}.py
 
   clean:
@@ -45,7 +48,7 @@ tasks:
       - rm -rf build-* subprojects
       - docker compose down --rmi local --volumes
 
-  # --- guest ---
+  # dev commands
 
   run:
     desc: Run target executable.
@@ -70,6 +73,7 @@ tasks:
     desc: Build debug and release.
     cmds:
       - task: build:release
+      # if debug is needed, build with build:debug
 
   build:*:
     desc: Build debug or release.
@@ -77,14 +81,23 @@ tasks:
     cmds:
       - task: setup:wrapdb
       - task: setup:build:{{.BTYPE}}
-      - task: prebuild:parsers
+      - task: generate:parsers
       - meson compile -C build-{{.BTYPE}}
       - '{{if eq .BTYPE "release"}}meson install -C build-{{.BTYPE}}{{end}}'
 
   version:
-    desc: Bump project version, $ task version -- bump minor
+    desc: Bump project version > task version -- bump minor
     cmds:
       - bump-my-version {{.CLI_ARGS}}
+
+  # generate
+
+  generate:parsers:
+    internal: true
+    sources: [src/syntax/*/parser.peg]
+    cmds:
+      - cmd: packcc {{.ITEM}}
+        for: sources
 
   # setup steps
 
@@ -102,12 +115,3 @@ tasks:
     generates: ['build-{{.BTYPE}}/**/*']
     cmds:
       - meson setup build-{{.BTYPE}} --buildtype={{.BTYPE}}
-
-  # prebuild steps
-
-  prebuild:parsers:
-    internal: true
-    sources: [src/syntax/*/parser.peg]
-    cmds:
-      - cmd: packcc {{.ITEM}}
-        for: sources

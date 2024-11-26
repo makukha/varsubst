@@ -43,7 +43,7 @@ static void print_usage() {
         "    -E, --envsubst    same as '--env --syntax=ggenv'\n"
         "    -f, --format=STR  set output format; default: pretty if -d else plain\n"
         "    -d, --detailed    add extended details\n"
-        "    -s, --syntax=STR  set syntax to use; default: 'default\n'"
+        "    -s, --syntax=STR  set syntax to use; default: 'default'\n"
         "    -v, --var=KEY=VAL set substitution variable; takes highest priority\n"
         "        --formats     list supported output formats\n"
         "        --syntaxes    list supported syntaxes\n"
